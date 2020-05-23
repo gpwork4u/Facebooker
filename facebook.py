@@ -9,7 +9,7 @@ class Facebook:
             'scheme': 'https',
             'accept': '*/*',
             'accept-language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,ja;q=0.5',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36',
+            'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         }
         self.session = requests.session()
         self.session.headers.update(headers)
@@ -35,9 +35,15 @@ class Facebook:
             login_url = 'https://www.facebook.com/login'
             req = self.session.post(login_url,data=data)
 
+            
+
         m_url = 'https://m.facebook.com/'
         req = self.session.get(m_url)
         soup = BeautifulSoup(req.text, 'lxml')
+        all_input_data = soup.find('form',id='mbasic-composer-form').findAll('input')
+        self.post_data = {}
+        for input_data in all_input_data:
+            self.post_data[input_data.get('name')] = input_data.get('value')
         try:
             self.fb_dtsg = soup.find('input',{'name':'fb_dtsg'}).get('value')
             self.save_cookies()
@@ -52,8 +58,11 @@ class Facebook:
         with open('cookie','rb') as f:
             self.session.cookies.update(pickle.load(f))
 
-    def post(self):
-        pass
+    def post(self, content):
+        post_url = 'https://m.facebook.com/composer/mbasic/'
+
+        self.post_data['xc_message'] = content
+        self.session.post(post_url, data=self.post_data)
 
     def get_post(self, post_id):
         post_url = 'https://m.facebook.com/story.php?story_fbid=%s&id=1'%str(post_id)
@@ -65,4 +74,13 @@ class Facebook:
         self.session.post(url, data=comment)
 
     def comment_comment(self, comment_id):
+        pass
+
+    def like_post(self, post_id):
+        pass
+
+    def like_post_comment(self, post_id):
+        pass
+
+    def like_comment_comment(self, post_id):
         pass
