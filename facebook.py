@@ -1,6 +1,9 @@
 import requests
 import pickle
 import os
+import logging
+import time
+import json
 from bs4 import BeautifulSoup
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
@@ -22,7 +25,8 @@ class Facebook:
             'scheme': 'https',
             'accept': '*/*',
             'accept-language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,ja;q=0.5',
-            'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'user-agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0)' + \
+                         'Gecko/20100101 Firefox/76.0',
         }
         self.session = requests.session()
         self.session.headers.update(headers)
@@ -51,17 +55,17 @@ class Facebook:
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
         try:
-            self.fb_dtsg = soup.find('input',{'name':'fb_dtsg'}).get('value')
+            self.fb_dtsg = soup.find('input', {'name':'fb_dtsg'}).get('value')
             self.save_cookies(email+'.cookie')
-            self.post_to_user_data = {"fb_dtsg":self.fb_dtsg,
-                                      "xhpc_timeline":"1",
-                                      "c_src":"timeline_other",
-                                      "cwevent":"composer_entry",
-                                      "referrer":"timeline",
-                                      "ctype":"inline",
-                                      "cver":"amber",
-                                      "rst_icv":"",
-                                      "view_post":"發佈"
+            self.post_to_user_data = {'fb_dtsg':self.fb_dtsg,
+                                      'xhpc_timeline':'1',
+                                      'c_src':'timeline_other',
+                                      'cwevent':'composer_entry',
+                                      'referrer':'timeline',
+                                      'ctype':'inline',
+                                      'cver':'amber',
+                                      'rst_icv':'',
+                                      'view_post':'view_post'
                                      }
                                      
             self.post_data = {'fb_dtsg': self.fb_dtsg,
@@ -73,14 +77,11 @@ class Facebook:
                                'ctype': 'inline',
                                'cver': 'amber',
                                'rst_icv': None,
-                               'view_privacy': '朋友',
-                               'view_post': '發佈',
-                               'view_photo': '相片',
-                               'view_minutiae': '感受',
-                               'view_overview': '更多'
+                               'view_post': 'view_post',
                              }
-        except:
-            print('username or password is invalid')
+        except Exception as e:
+            logging.debug(e)
+            logging.error('username or password is invalid')
 
     def save_cookies(self, filename):
         with open(filename, 'wb') as f:
@@ -92,11 +93,35 @@ class Facebook:
     
     # post methods
     def get_post(self, post_id):
-        url = 'https://m.facebook.com/story.php?story_fbid=%s&id=1'%str(post_id)
+        url = 'https://m.facebook.com/story.php?' + \
+              'story_fbid=%s&id=1'%str(post_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
         post_content = soup.find(id='objects_container').string
         return post_content
+
+    def get_user_post_list(self, user_id, num):
+        url = 'https://m.facebook.com/profile/timeline/stream/?' + \
+              'end_time=%s&'%str(time.time()) + \
+              'profile_id=%s'%str(user_id)
+        posts_id = []
+        while len(posts_id) < num:
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text, 'lxml')
+            posts = soup.find('section').findAll('article', recursive=False)
+            for post in posts:
+                data = json.loads(post.get('data-ft'))
+                post_id = data['mf_story_key']
+                posts_id.append(post_id)
+                if len(posts_id) >= num:
+                    break
+            if len(posts_id) >= num:
+                    break
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text, 'lxml')
+            next_href = soup.find('div', id='u_0_0').find('a').get('href')
+            url = 'https://m.facebook.com' + next_href
+        return posts_id
 
     def del_post(self, post_id):
         pass
@@ -120,13 +145,18 @@ class Facebook:
 
     # comment methods
     def get_comments(self, post_id, p=0):
-        url = 'https://m.facebook.com/story.php?story_fbid=%s&id=1&p=%s'%(str(post_id),p)
+        url = 'https://m.facebook.com/story.php?' + \
+              'story_fbid=%s&id=1&p=%s'%(str(post_id),p)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
-        div = soup.find('div',id='ufi_%s'%str(post_id))
-        comment_div = div.find('div',id='sentence_%s'%str(post_id)).next_sibling
-        comments = comment_div.findAll('div', recursive=False)
-
+        try:
+            div = soup.find('div',id='ufi_%s'%str(post_id))
+            comment_div = div.find('div',id='sentence_%s'%str(post_id)).next_sibling
+            comments = comment_div.findAll('div', recursive=False)
+        except Exception as e:
+            logging.debug(e)
+            logging.error('You don\'t have access authority')
+            return
         pre_page_div = comment_div.find('div', id='see_prev_%s'%str(post_id))
         if pre_page_div:
             pre_href = pre_page_div.find('a').get('href')
@@ -152,17 +182,23 @@ class Facebook:
                 pass
 
         return comments_id, users, comments_contents, comments_time
-    def del_comment(self, comment_id, post_id):
-        url = 'https://m.facebook.com/ufi/delete/?delete_comment_id=%s&delete_comment_fbid=%s&ft_ent_identifier=%s'%(str(comment_id), str(comment_id), str(post_id))
+
+    def delete_comment(self, comment_id, post_id):
+        url = 'https://m.facebook.com/ufi/delete/?' + \
+              'delete_comment_id=%s'%str(comment_id) + \
+              '&delete_comment_fbid=%s'%str(comment_id) + \
+              '&ft_ent_identifier=%s'%str(post_id)
         data = {'fb_dtsg': self.fb_dtsg}
         return self.session.post(url, data=data)
 
-    def comment_post(self, post_id, comment):
-        url = 'https://m.facebook.com/a/comment.php?fs=8&actionsource=2&comment_logging&ft_ent_identifier=%s'%str(post_id)
-        comment = {'comment_text':comment,'fb_dtsg':self.fb_dtsg}
+    def comment(self, post_id, content):
+        url = 'https://m.facebook.com/a/comment.php?' + \
+              'fs=8&actionsource=2&comment_logging' + \
+              '&ft_ent_identifier=%s'%str(post_id)
+        comment = {'comment_text':content,'fb_dtsg':self.fb_dtsg}
         return self.session.post(url, data=comment)
 
-    def reply_comment(self, comment_id):
+    def reply(self, comment_id):
         pass
 
     def like_post(self, post_id):
