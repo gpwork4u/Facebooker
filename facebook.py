@@ -12,7 +12,7 @@ def letter_adder(string, num):
         string = string[0] + chr(ord(string[1]) + num)
     return string
 
-class Facebook:
+class FacebookAPI:
     '''
     post
       |
@@ -64,21 +64,25 @@ class Facebook:
                                       'referrer':'timeline',
                                       'ctype':'inline',
                                       'cver':'amber',
-                                      'rst_icv':'',
+                                      'rst_icv':None,
                                       'view_post':'view_post'
                                      }
                                      
             self.post_data = {'fb_dtsg': self.fb_dtsg,
-                               'privacyx': '291667064279714',
-                               'target': self.user_id,
-                               'c_src': 'feed',
-                               'cwevent': 'composer_entry',
-                               'referrer': 'feed',
-                               'ctype': 'inline',
-                               'cver': 'amber',
-                               'rst_icv': None,
-                               'view_post': 'view_post',
+                              'privacyx': '291667064279714',
+                              'target': self.user_id,
+                              'c_src': 'feed',
+                              'cwevent': 'composer_entry',
+                              'referrer': 'feed',
+                              'ctype': 'inline',
+                              'cver': 'amber',
+                              'rst_icv': None,
+                              'view_post': 'view_post',
                              }
+            self.send_msg_data = {'fb_dtsg': self.fb_dtsg,
+                                  'body':'',
+                                  'send':'傳送',
+                                  'wwwupp':'C3'}
         except Exception as e:
             logging.debug(e)
             logging.error('username or password is invalid')
@@ -97,10 +101,12 @@ class Facebook:
               'story_fbid=%s&id=1'%str(post_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
-        post_content = soup.find(id='objects_container').string
+        post_content = soup.find('div',class_='z')
+        if not post_content:
+            logging.error('This post is not supported or you don\'t have acess authority')
         return post_content
 
-    def get_user_post_list(self, user_id, num):
+    def get_user_post_list(self, user_id, num=10):
         url = 'https://m.facebook.com/profile/timeline/stream/?' + \
               'end_time=%s&'%str(time.time()) + \
               'profile_id=%s'%str(user_id)
@@ -197,6 +203,34 @@ class Facebook:
               '&ft_ent_identifier=%s'%str(post_id)
         comment = {'comment_text':content,'fb_dtsg':self.fb_dtsg}
         return self.session.post(url, data=comment)
+
+    def get_msg(self, chat_room_id, num=1):
+        url = 'https://m.facebook.com/messages/read/?tid=%s'%str(chat_room_id)
+        req = self.session.get(url)
+        soup = BeautifulSoup(req.text, 'lxml')
+        msg_group = soup.find('div', id='messageGroup')
+        msgs = msg_group.findAll('div', recursive=False)[-1].findAll('div', recursive=False)
+        send_from = []
+        content = []
+        time = []
+        for msg in msgs:
+            content_class = letter_adder(msg.get('class')[-1], 1)
+            send_from.append(msg.find('strong').text)
+            print(content_class)
+            content.append(msg.find('div', class_=content_class). \
+                                    find('div').find('span').text)
+            time.append(msg.find('abbr').text)
+        return send_from, content, time
+
+    def send_msg(self, chat_room_id, content):
+        url = 'https://m.facebook.com/messages/send/'
+        if len(str(chat_room_id)) > len(self.user_id):
+            self.send_msg_data['tids'] = 'cid.g.%s'%str(chat_room_id)
+        else:
+            self.send_msg_data['tids'] = 'cid.c.%s:%s'%(str(self.user_id), str(chat_room_id))
+        self.send_msg_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
+        self.send_msg_data['body'] = content
+        self.session.post(url, data=self.send_msg_data)
 
     def reply(self, comment_id):
         pass
