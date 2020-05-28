@@ -132,7 +132,7 @@ class FacebookAPI:
             url = 'https://m.facebook.com' + next_href
         return posts_id
 
-    def post(self, content, privacy_level=0, target=None):
+    def post(self, content, privacy_level=0, user_id=None):
         public = 300645083384735 # level 0
         freind = 291667064279714 # level 1
         privacy = [public, freind]
