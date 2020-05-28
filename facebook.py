@@ -153,11 +153,11 @@ class FacebookAPI:
             self.post_to_user_data['target'] = user_id
             self.post_to_user_data['id'] = user_id
             self.post_to_user_data['xc_message'] = content
-            return self.session.post(url, data=self.post_to_user_data)
+            self.session.post(url, data=self.post_to_user_data)
         else:
             self.post_data['privacyx'] = privacy[privacy_level]
             self.post_data['xc_message'] = content
-            return self.session.post(url, data=self.post_data)
+            self.session.post(url, data=self.post_data)
 
 
     # comment methods
@@ -221,6 +221,18 @@ class FacebookAPI:
         comment = {'comment_text':content,'fb_dtsg':self.fb_dtsg}
         return self.session.post(url, data=comment)
 
+    # reply method
+    def reply(self, post_id ,comment_id, content):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        url = 'https://m.facebook.com/a/comment.php?' + \
+              'parent_comment_id=%s'%str(comment_id) + \
+              '&ft_ent_identifier=%s'%str(post_id)
+        data = {'fb_dtsg': self.fb_dtsg, 'comment_text':content}
+        self.session.post(url, data=data)
+
+    
     # messenger method
     def get_msg(self, chat_room_id, num=1):
         if not self.login_check:
@@ -255,14 +267,3 @@ class FacebookAPI:
         self.send_msg_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
         self.send_msg_data['body'] = content
         self.session.post(url, data=self.send_msg_data)
-
-    # reply method
-    def reply(self, post_id ,comment_id, content):
-        if not self.login_check:
-            logging.error('You should login first')
-            return
-        url = 'https://m.facebook.com/a/comment.php?' + \
-              'parent_comment_id=%s'%str(comment_id) + \
-              '&ft_ent_identifier=%s'%str(post_id)
-        data = {'fb_dtsg': self.fb_dtsg, 'comment_text':content}
-        self.session.post(url, data=data)
