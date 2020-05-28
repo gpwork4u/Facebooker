@@ -1,12 +1,14 @@
 # Facebooker
- an unofficial facebook api
+ An unofficial facebook api
 
-## requirement
+## Requirement
 - [ ] python3.6
+
+## Dependencies
 - [ ] requests
 - [ ] bs4
 
-### install
+### Install
 ```
-$ pip install requests beautifulsoup4
+$ pip install -r requirements.txt
 ```
