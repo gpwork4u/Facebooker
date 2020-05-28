@@ -31,6 +31,7 @@ class FacebookAPI:
         }
         self.session = requests.session()
         self.session.headers.update(headers)
+        self.login_check = False
     def login(self, email, password):
         # get input field
         self.session.cookies.clear()
@@ -61,7 +62,8 @@ class FacebookAPI:
             logging.debug(e)
             logging.error('username or password is invalid')
             return False
-
+        
+        self.login_check = True
         self.save_cookies(email+'.cookie')
         self.post_to_user_data = {'fb_dtsg':self.fb_dtsg,
                                     'xhpc_timeline':'1',
@@ -100,6 +102,9 @@ class FacebookAPI:
     
     # post methods
     def get_post(self, post_id):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/story.php?' + \
               'story_fbid=%s&id=1'%str(post_id)
         req = self.session.get(url)
@@ -110,6 +115,9 @@ class FacebookAPI:
         return post_content
 
     def get_user_post_list(self, user_id, num=10):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/profile/timeline/stream/?' + \
               'end_time=%s&'%str(time.time()) + \
               'profile_id=%s'%str(user_id)
@@ -133,6 +141,9 @@ class FacebookAPI:
         return posts_id
 
     def post(self, content, privacy_level=0, user_id=None):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         public = 300645083384735 # level 0
         freind = 291667064279714 # level 1
         privacy = [public, freind]
@@ -151,6 +162,9 @@ class FacebookAPI:
 
     # comment methods
     def get_comments(self, post_id, p=0):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/story.php?' + \
               'story_fbid=%s&id=1&p=%s'%(str(post_id),p)
         req = self.session.get(url)
@@ -190,6 +204,9 @@ class FacebookAPI:
         return comments_id, users, comments_contents, comments_time
 
     def delete_comment(self, post_id, comment_id):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/ufi/delete/?' + \
               'delete_comment_id=%s'%str(comment_id) + \
               '&delete_comment_fbid=%s'%str(comment_id) + \
@@ -206,6 +223,9 @@ class FacebookAPI:
 
     # messenger method
     def get_msg(self, chat_room_id, num=1):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/messages/read/?tid=%s'%str(chat_room_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
@@ -224,6 +244,9 @@ class FacebookAPI:
         return send_from, content, time
 
     def send_msg(self, chat_room_id, content):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/messages/send/'
         if len(str(chat_room_id)) > len(self.user_id):
             self.send_msg_data['tids'] = 'cid.g.%s'%str(chat_room_id)
@@ -235,6 +258,9 @@ class FacebookAPI:
 
     # reply method
     def reply(self, post_id ,comment_id, content):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
         url = 'https://m.facebook.com/a/comment.php?' + \
               'parent_comment_id=%s'%str(comment_id) + \
               '&ft_ent_identifier=%s'%str(post_id)
