@@ -14,11 +14,12 @@ def letter_adder(string, num):
 
 class FacebookAPI:
     '''
-    post
-      |
-      -comment
-          |
-          -reply
+    FB post structure:
+        post
+        |
+        --comment
+            |
+            --reply
     '''
     def __init__(self):
         headers={
@@ -56,36 +57,38 @@ class FacebookAPI:
         soup = BeautifulSoup(req.text, 'lxml')
         try:
             self.fb_dtsg = soup.find('input', {'name':'fb_dtsg'}).get('value')
-            self.save_cookies(email+'.cookie')
-            self.post_to_user_data = {'fb_dtsg':self.fb_dtsg,
-                                      'xhpc_timeline':'1',
-                                      'c_src':'timeline_other',
-                                      'cwevent':'composer_entry',
-                                      'referrer':'timeline',
-                                      'ctype':'inline',
-                                      'cver':'amber',
-                                      'rst_icv':None,
-                                      'view_post':'view_post'
-                                     }
-                                     
-            self.post_data = {'fb_dtsg': self.fb_dtsg,
-                              'privacyx': '291667064279714',
-                              'target': self.user_id,
-                              'c_src': 'feed',
-                              'cwevent': 'composer_entry',
-                              'referrer': 'feed',
-                              'ctype': 'inline',
-                              'cver': 'amber',
-                              'rst_icv': None,
-                              'view_post': 'view_post',
-                             }
-            self.send_msg_data = {'fb_dtsg': self.fb_dtsg,
-                                  'body':'',
-                                  'send':'傳送',
-                                  'wwwupp':'C3'}
         except Exception as e:
             logging.debug(e)
             logging.error('username or password is invalid')
+            return False
+
+        self.save_cookies(email+'.cookie')
+        self.post_to_user_data = {'fb_dtsg':self.fb_dtsg,
+                                    'xhpc_timeline':'1',
+                                    'c_src':'timeline_other',
+                                    'cwevent':'composer_entry',
+                                    'referrer':'timeline',
+                                    'ctype':'inline',
+                                    'cver':'amber',
+                                    'rst_icv':None,
+                                    'view_post':'view_post'
+                                    }
+                                    
+        self.post_data = {'fb_dtsg': self.fb_dtsg,
+                            'privacyx': '291667064279714',
+                            'target': self.user_id,
+                            'c_src': 'feed',
+                            'cwevent': 'composer_entry',
+                            'referrer': 'feed',
+                            'ctype': 'inline',
+                            'cver': 'amber',
+                            'rst_icv': None,
+                            'view_post': 'view_post',
+                            }
+        self.send_msg_data = {'fb_dtsg': self.fb_dtsg,
+                                'body':'',
+                                'send':'傳送',
+                                'wwwupp':'C3'}
 
     def save_cookies(self, filename):
         with open(filename, 'wb') as f:
@@ -128,9 +131,6 @@ class FacebookAPI:
             next_href = soup.find('div', id='u_0_0').find('a').get('href')
             url = 'https://m.facebook.com' + next_href
         return posts_id
-
-    def del_post(self, post_id):
-        pass
 
     def post(self, content, privacy_level=0, target=None):
         public = 300645083384735 # level 0
@@ -189,7 +189,7 @@ class FacebookAPI:
 
         return comments_id, users, comments_contents, comments_time
 
-    def delete_comment(self, comment_id, post_id):
+    def delete_comment(self, post_id, comment_id):
         url = 'https://m.facebook.com/ufi/delete/?' + \
               'delete_comment_id=%s'%str(comment_id) + \
               '&delete_comment_fbid=%s'%str(comment_id) + \
@@ -204,6 +204,7 @@ class FacebookAPI:
         comment = {'comment_text':content,'fb_dtsg':self.fb_dtsg}
         return self.session.post(url, data=comment)
 
+    # messenger method
     def get_msg(self, chat_room_id, num=1):
         url = 'https://m.facebook.com/messages/read/?tid=%s'%str(chat_room_id)
         req = self.session.get(url)
@@ -232,23 +233,10 @@ class FacebookAPI:
         self.send_msg_data['body'] = content
         self.session.post(url, data=self.send_msg_data)
 
-    def reply(self, comment_id):
-        pass
-
-    def like_post(self, post_id):
-        pass
-
-    def like_comment(self, post_id):
-        pass
-
-    def like_reply(self, post_id):
-        pass
-
-    def get_post_likes(self, post_id):
-        pass
-
-    def get_comment_likes(self, post_id):
-        pass
-
-    def get_reply_likes(self, post_id):
-        pass
+    # reply method
+    def reply(self, post_id ,comment_id, content):
+        url = 'https://m.facebook.com/a/comment.php?' + \
+              'parent_comment_id=%s'%str(comment_id) + \
+              '&ft_ent_identifier=%s'%str(post_id)
+        data = {'fb_dtsg': self.fb_dtsg, 'comment_text':content}
+        self.session.post(url, data=data)
