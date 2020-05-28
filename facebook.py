@@ -234,7 +234,7 @@ class FacebookAPI:
 
     
     # messenger method
-    def get_msg(self, chat_room_id, num=1):
+    def get_msg(self, chat_room_id):
         if not self.login_check:
             logging.error('You should login first')
             return
