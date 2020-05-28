@@ -1,5 +1,5 @@
 # Facebooker
- an unoffical facebook api
+ an unofficial facebook api
 
 ## requirement
 - [ ] python3.6
