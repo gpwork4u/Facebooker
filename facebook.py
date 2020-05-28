@@ -138,9 +138,9 @@ class FacebookAPI:
         privacy = [public, freind]
         url = 'https://m.facebook.com/composer/mbasic/'
         self.post_data['xc_message'] = content
-        if target:
-            self.post_to_user_data['target'] = target
-            self.post_to_user_data['id'] = target
+        if user_id:
+            self.post_to_user_data['target'] = user_id
+            self.post_to_user_data['id'] = user_id
             self.post_to_user_data['xc_message'] = content
             return self.session.post(url, data=self.post_to_user_data)
         else:
