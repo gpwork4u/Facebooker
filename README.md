@@ -14,5 +14,5 @@ $ pip install -r requirements.txt
 ```
 
 ## Document
-see doc.md
+see [doc.md](./doc.md)
 
