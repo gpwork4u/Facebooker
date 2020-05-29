@@ -12,7 +12,7 @@ def letter_adder(string, num):
         string = string[0] + chr(ord(string[1]) + num)
     return string
 
-class FacebookAPI:
+class API:
     '''
     FB post structure:
         post
@@ -234,6 +234,9 @@ class FacebookAPI:
 
     
     # messenger method
+    def get_unread_msg():
+        pass
+        
     def get_msg(self, chat_room_id):
         if not self.login_check:
             logging.error('You should login first')
