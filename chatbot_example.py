@@ -1,7 +1,8 @@
 import time
-from Facebooker import facebook
 import sys
+from Facebooker import facebook
 from getpass import getpass
+
 fb = facebook.API()
 email = input('email:')
 password = getpass('password:')
