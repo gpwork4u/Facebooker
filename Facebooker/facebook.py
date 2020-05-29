@@ -65,7 +65,8 @@ class API:
         
         self.login_check = True
         self.save_cookies(email+'.cookie')
-        self.post_to_user_data = {'fb_dtsg':self.fb_dtsg,
+        self.post_to_user_data = {
+                                    'fb_dtsg':self.fb_dtsg,
                                     'xhpc_timeline':'1',
                                     'c_src':'timeline_other',
                                     'cwevent':'composer_entry',
@@ -74,9 +75,10 @@ class API:
                                     'cver':'amber',
                                     'rst_icv':None,
                                     'view_post':'view_post'
-                                    }
+                                 }
                                     
-        self.post_data = {'fb_dtsg': self.fb_dtsg,
+        self.post_data = {
+                            'fb_dtsg': self.fb_dtsg,
                             'privacyx': '291667064279714',
                             'target': self.user_id,
                             'c_src': 'feed',
@@ -86,11 +88,13 @@ class API:
                             'cver': 'amber',
                             'rst_icv': None,
                             'view_post': 'view_post',
-                            }
-        self.send_msg_data = {'fb_dtsg': self.fb_dtsg,
+                         }
+        self.send_msg_data = {
+                                'fb_dtsg': self.fb_dtsg,
                                 'body':'',
                                 'send':'傳送',
-                                'wwwupp':'C3'}
+                                'wwwupp':'C3'
+                              }
 
     def save_cookies(self, filename):
         with open(filename, 'wb') as f:
@@ -237,7 +241,7 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://m.facebook.com/messages/read/?tid=cid.c.%s:%s'%(str(chat_room_id), self.user_id)
+        url = 'https://m.facebook.com/messages/read/?tid=%s'%str(chat_room_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
         msg_group = soup.find('div', id='messageGroup')
@@ -265,7 +269,9 @@ class API:
         for unread_chat in unread_chats:
             href = unread_chat.find('a').get('href')
             if href.find('cid.c') >= 0:
-                chat_room_id = href[href.find('%')+3:href.find('&')]
+                chat_room_id = href[href.find('cid.c.')+6:href.find('%')]
+                if chat_room_id == self.user_id:
+                    chat_room_id = href[href.find('%')+3:href.find('&')]
             else:
                 chat_room_id = href[href.find('cid.g.')+6:href.find('&')]
             unread_chat_room_id.append(chat_room_id)
@@ -280,7 +286,7 @@ class API:
         if len(str(chat_room_id)) > len(self.user_id):
             self.send_msg_data['tids'] = 'cid.g.%s'%str(chat_room_id)
         else:
-            self.send_msg_data['tids'] = 'cid.c.%s:%s'%(str(chat_room_id), str(self.user_id))
+            self.send_msg_data['tids'] = '%s'%str(chat_room_id)
             self.send_msg_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
         self.send_msg_data['body'] = content
         self.session.post(url, data=self.send_msg_data)
