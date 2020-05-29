@@ -232,7 +232,6 @@ class API:
         data = {'fb_dtsg': self.fb_dtsg, 'comment_text':content}
         self.session.post(url, data=data)
 
-    
     # messenger method
     def get_msg(self, chat_room_id):
         if not self.login_check:
@@ -249,11 +248,29 @@ class API:
         for msg in msgs:
             content_class = letter_adder(msg.get('class')[-1], 1)
             send_from.append(msg.find('strong').text)
-            print(content_class)
             content.append(msg.find('div', class_=content_class). \
                                     find('div').find('span').text)
             time.append(msg.find('abbr').text)
         return send_from, content, time
+
+    def get_unread_chat(self):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        url = 'https://m.facebook.com/messages/?folder=unread'
+        req = self.session.get(url)
+        soup = BeautifulSoup(req.text, 'lxml')
+        unread_chats = soup.find('div', id='root').find('section').findAll('table')
+        unread_chat_room_id = []
+        for unread_chat in unread_chats:
+            href = unread_chat.find('a').get('href')
+            if href.find('cid.c') >= 0:
+                chat_room_id = href[href.find('%')+3:href.find('&')]
+            else:
+                chat_room_id = href[href.find('cid.g.')+6:href.find('&')]
+            unread_chat_room_id.append(chat_room_id)
+        
+        return unread_chat_room_id
 
     def send_msg(self, chat_room_id, content):
         if not self.login_check:

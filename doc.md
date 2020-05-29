@@ -80,4 +80,9 @@ it will save cookie when first time login, or you have cookie file it will login
   
   - return:
     - the newest messages in target chat room
+
+### get_unread_chat
+> get chat room id that you have not read
+> - return
+>   - a list chat room id have not read
    
