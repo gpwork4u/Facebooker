@@ -8,4 +8,3 @@ Facebooker.egg-info/
 *.ipynb
 *.html
 dist/
-chatbot_example.py
