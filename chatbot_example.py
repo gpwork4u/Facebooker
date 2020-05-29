@@ -4,7 +4,7 @@ import sys
 from getpass import getpass
 fb = facebook.API()
 email = input('email:')
-password = getpass()
+password = getpass('password:')
 fb.login(email, password)
 while True:
     unread_chats = fb.get_unread_chat()
