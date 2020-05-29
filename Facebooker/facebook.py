@@ -26,7 +26,7 @@ class API:
             'scheme': 'https',
             'accept': '*/*',
             'accept-language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,ja;q=0.5',
-            'user-agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0)' + \
+            'user-agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) ' + \
                          'Gecko/20100101 Firefox/76.0',
         }
         self.session = requests.session()
@@ -237,7 +237,7 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://m.facebook.com/messages/read/?tid=%s'%str(chat_room_id)
+        url = 'https://m.facebook.com/messages/read/?tid=cid.c.%s:%s'%(str(chat_room_id), self.user_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
         msg_group = soup.find('div', id='messageGroup')
@@ -280,7 +280,7 @@ class API:
         if len(str(chat_room_id)) > len(self.user_id):
             self.send_msg_data['tids'] = 'cid.g.%s'%str(chat_room_id)
         else:
-            self.send_msg_data['tids'] = 'cid.c.%s:%s'%(str(self.user_id), str(chat_room_id))
-        self.send_msg_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
+            self.send_msg_data['tids'] = 'cid.c.%s:%s'%(str(chat_room_id), str(self.user_id))
+            self.send_msg_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
         self.send_msg_data['body'] = content
         self.session.post(url, data=self.send_msg_data)
