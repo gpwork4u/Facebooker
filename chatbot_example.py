@@ -16,4 +16,3 @@ while True:
             fb.send_msg(chat, 'test')
         else:
             fb.send_msg(chat, 'this is fb bot')
-    time.sleep(0.01)
