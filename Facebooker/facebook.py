@@ -234,9 +234,6 @@ class API:
 
     
     # messenger method
-    def get_unread_msg():
-        pass
-        
     def get_msg(self, chat_room_id):
         if not self.login_check:
             logging.error('You should login first')
