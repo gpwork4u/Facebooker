@@ -5,6 +5,7 @@
 - [ ] python3.6
 
 ## Dependencies
+- [ ] lxml
 - [ ] requests
 - [ ] bs4
 

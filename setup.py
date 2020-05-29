@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="Facebooker",
-    version="0.0.3",
+    version="0.0.7",
     author="gpwork4u",
     author_email="gpwork4u@gmail.com",
     description="An un official facebook api",
@@ -19,6 +19,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
+        'lxml',
         'beautifulsoup4',
         'requests'
     ],
