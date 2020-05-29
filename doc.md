@@ -6,7 +6,7 @@
   - email
   - password
 
-it will save cookie if cookie is not found, or you have cooki file it will login by the cookie not email and password
+it will save cookie when first time login, or you have cookie file it will login by the cookie not email and password
 
 ## post
 
