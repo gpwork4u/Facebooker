@@ -14,5 +14,5 @@ $ pip install -r requirements.txt
 ```
 
 ## Document
-see [doc.md](./doc.md)
+see [doc.md](https://github.com/gpwork4u/Facebooker/blob/master/doc.md)
 
