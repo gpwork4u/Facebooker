@@ -10,7 +10,7 @@
 
 ### Install
 ```
-$ pip install -r requirements.txt
+$ pip install Facebooker
 ```
 
 ## Document
