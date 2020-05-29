@@ -1,6 +1,11 @@
+dist/
+build/
 .vscode/
 __pycache__/
+Facebooker.egg-info/
 .ipynb_checkpoints/
 *.cookie
 *.ipynb
 *.html
+dist/
+biuld/
