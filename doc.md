@@ -51,6 +51,7 @@ facebook.API.post(user_id)
 > get posts on target user's wall
 - input
   - user_id : target user id
+  - num : the number of posts
 
 - return
   - all posts id on user's wall
@@ -75,8 +76,11 @@ facebook.API.get_comments(post_id)
 - input:
   - post_id : target post id
 
-- return 
-  - all comments under the post with 
+- return 4 lists
+  - all comments id
+  - all comments user
+  - all comments content
+  - all comments time
 
 ### delete_comment
 ```python
@@ -126,8 +130,10 @@ facebook.API.get_msg(chat_room_id)
 - input:
   - chat_room_id : target user id or group id
   
-- return:
-  - the newest messages in target chat room
+- return 3 list:
+  - the user who send the message
+  - the message content
+  - the message time
 
 ### get_unread_chat
 facebook.API.get_msg()
