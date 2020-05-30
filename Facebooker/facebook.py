@@ -118,6 +118,32 @@ class API:
             logging.error('This post is not supported or you don\'t have acess authority')
         return post_content
 
+    def like_post(self, action, post_id):
+        '''
+            action:
+                0 : like
+                1 : Love
+                2 : Care
+                3 : Haha
+                4 : Wow
+                5 : Sad
+                6 : Angry
+        '''
+
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        if action > 6 or action < 0:
+            logging.error('This action is not supported')
+            return
+        url = 'https://m.facebook.com/reactions/picker/?ft_id=' + str(post_id)
+        req = self.session.get(url)
+        soup = BeautifulSoup(req.text, 'lxml')
+        root = soup.find('div', id='root').find('table', role='presentation')
+        action_href = [a.get('href')  for a in root.findAll('a')][:-1]
+        like_url = 'https://m.facebook.com' + action_href[action]
+        self.session.get(like_url)
+
     def get_user_post_list(self, user_id, num=10):
         if not self.login_check:
             logging.error('You should login first')
@@ -144,28 +170,6 @@ class API:
             url = 'https://m.facebook.com' + next_href
         return posts_id
 
-    def like_post(self, action, post_id):
-        '''
-            action:
-                0 : like
-                1 : Love
-                2 : Care
-                3 : Haha
-                4 : Wow
-                5 : Sad
-                6 : Angry
-        '''
-
-        if not self.login_check:
-            logging.error('You should login first')
-            return
-        url = 'https://m.facebook.com/reactions/picker/?ft_id=' + str(post_id)
-        req = self.session.get(url)
-        soup = BeautifulSoup(req.text, 'lxml')
-        root = soup.find('div', id='root').find('table', role='presentation')
-        action_href = [a.get('href')  for a in root.findAll('a')][:-1]
-        like_url = 'https://m.facebook.com' + action_href[action]
-        self.session.get(like_url)
 
     def post(self, content, privacy_level=0, user_id=None):
         if not self.login_check:

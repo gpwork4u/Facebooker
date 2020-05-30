@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="Facebooker",
-    version="0.0.7",
+    version="0.1.1",
     author="gpwork4u",
     author_email="gpwork4u@gmail.com",
     description="An un official facebook api",
