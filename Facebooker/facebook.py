@@ -138,11 +138,14 @@ class API:
             return
         url = 'https://m.facebook.com/reactions/picker/?ft_id=' + str(post_id)
         req = self.session.get(url)
-        soup = BeautifulSoup(req.text, 'lxml')
-        root = soup.find('div', id='root').find('table', role='presentation')
-        action_href = [a.get('href')  for a in root.findAll('a')][:-1]
-        like_url = 'https://m.facebook.com' + action_href[action]
-        self.session.get(like_url)
+        try:
+            soup = BeautifulSoup(req.text, 'lxml')
+            root = soup.find('div', id='root').find('table', role='presentation')
+            action_href = [a.get('href')  for a in root.findAll('a')][:-1]
+            like_url = 'https://m.facebook.com' + action_href[action]
+            self.session.get(like_url)
+        except:
+            logging.error('You don\'t have access authority')
 
     def get_user_post_list(self, user_id, num=10):
         if not self.login_check:
