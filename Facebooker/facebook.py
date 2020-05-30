@@ -195,45 +195,49 @@ class API:
 
 
     # comment methods
-    def get_comments(self, post_id, p=0):
+    def get_comments(self, post_id, num=10, start=0):
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://m.facebook.com/story.php?' + \
-              'story_fbid=%s&id=1&p=%s'%(str(post_id),p)
-        req = self.session.get(url)
-        soup = BeautifulSoup(req.text,'lxml')
-        try:
-            div = soup.find('div',id='ufi_%s'%str(post_id))
-            comment_div = div.find('div',id='sentence_%s'%str(post_id)).next_sibling
-            comments = comment_div.findAll('div', recursive=False)
-        except Exception as e:
-            logging.debug(e)
-            logging.error('You don\'t have access authority')
-            return
-        pre_page_div = comment_div.find('div', id='see_prev_%s'%str(post_id))
-        if pre_page_div:
-            pre_href = pre_page_div.find('a').get('href')
-            pre_href = pre_href[pre_href.find('p='):]
-            page = pre_href[2:pre_href.find('&')]
-            ret = self.get_comments(post_id, p=page)
-            comments_id = ret[0]
-            users = ret[1]
-            comments_contents = ret[2]
-            comments_time = ret[3]
-        else:
-            comments_id = []
-            users = []
-            comments_contents = []
-            comments_time = []
-        for comment in comments:
+        
+        comments_id = []
+        users = []
+        comments_contents = []
+        comments_time = []
+        while num > 0:
+            url = 'https://m.facebook.com/story.php?' + \
+                'story_fbid=%s&id=1&p=%s'%(str(post_id),start)
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text,'lxml')
             try:
-                users.append(comment.find('h3').text)
-                comments_id.append(comment.get('id'))
-                comments_contents.append(comment.find('h3').next_sibling.text)
-                comments_time.append(comment.find('abbr').text)
-            except:
-                pass
+                div = soup.find('div',id='ufi_%s'%str(post_id))
+                comment_div = div.find('div',id='sentence_%s'%str(post_id)).next_sibling
+                comments = comment_div.findAll('div', recursive=False)
+                comments.reverse()
+            except Exception as e:
+                logging.debug(e)
+                logging.error('You don\'t have access authority')
+                return
+            for comment in comments:
+                try:
+                    users.append(comment.find('h3').text)
+                    comments_id.append(comment.get('id'))
+                    comments_contents.append(comment.find('h3').next_sibling.text)
+                    comments_time.append(comment.find('abbr').text)
+                    num -= 1
+                except:
+                    pass
+
+            pre_page_div = comment_div.find('div', id='see_prev_%s'%str(post_id))
+
+            if pre_page_div:
+                pre_href = pre_page_div.find('a').get('href')
+                pre_href = pre_href[pre_href.find('p='):]
+                start = pre_href[2:pre_href.find('&')]
+            else:
+                break
+
+
 
         return comments_id, users, comments_contents, comments_time
 
