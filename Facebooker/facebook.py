@@ -36,7 +36,7 @@ class API:
         # get input field
         self.session.cookies.clear()
         if os.path.isfile(email+'.cookie'):
-            self.load_cookies(email+'.cookie')
+            self.__load_cookies(email+'.cookie')
         else:
             url = 'https://www.facebook.com/'
             req = self.session.get(url)
@@ -64,7 +64,7 @@ class API:
             return False
         
         self.login_check = True
-        self.save_cookies(email+'.cookie')
+        self.__save_cookies(email+'.cookie')
         self.post_to_user_data = {
                                     'fb_dtsg':self.fb_dtsg,
                                     'xhpc_timeline':'1',
@@ -96,11 +96,11 @@ class API:
                                 'wwwupp':'C3'
                               }
 
-    def save_cookies(self, filename):
+    def __save_cookies(self, filename):
         with open(filename, 'wb') as f:
             pickle.dump(self.session.cookies, f)
 
-    def load_cookies(self, filename):
+    def __load_cookies(self, filename):
         with open(filename,'rb') as f:
             self.session.cookies.update(pickle.load(f))
     
