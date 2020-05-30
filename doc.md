@@ -69,14 +69,15 @@ facebook.API.post(content, privacy_level, user_id)
 
 ### get_comments
 ```python
-facebook.API.get_comments(post_id)
+facebook.API.get_comments(post_id, num, start)
 ```
 > get all comments under the post
 
 - input:
   - post_id : target post id
-
-- return 4 lists
+  - num : the number of commnents you want
+  - start : the last comment you want to start
+- return 4 lists, it will start from the last comment
   - all comments id
   - all comments user
   - all comments content
