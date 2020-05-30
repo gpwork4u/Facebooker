@@ -29,16 +29,20 @@ facebook.API.get_post(post_id)
 - return:
   - a html format of the post 
   
-
-### post
+### like_post
 ```python
-facebook.API.post(content, privacy_level, user_id)
+  facebook.API.like_post(action, post_id)
 ```
-> post a post to your or friend's wall
-- input
-  - content : the post content you want
-  - privacy_level: privacy level of your post, 0 for public, 1 for freind, if user_id isn't None, it will not effect
-  - user_id : target user id, leave None if you want to post on your wall
+- inputs
+  - action : an 0 ~ 6 number
+    - 0 : like
+    - 1 : Love
+    - 2 : Care
+    - 3 : Haha
+    - 4 : Wow
+    - 5 : Sad
+    - 6 : Angry
+  - post_id : target post id
 
 ### get_user_post_list
 ```python
@@ -50,6 +54,16 @@ facebook.API.post(user_id)
 
 - return
   - all posts id on user's wall
+
+### post
+```python
+facebook.API.post(content, privacy_level, user_id)
+```
+> post a post to your or friend's wall
+- input
+  - content : the post content you want
+  - privacy_level: privacy level of your post, 0 for public, 1 for freind, if user_id isn't None, it will not effect
+  - user_id : target user id, leave None if you want to post on your wall
 
 
 ### get_comments
