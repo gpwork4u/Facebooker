@@ -283,7 +283,12 @@ class API:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             msg_group = soup.find('div', id='messageGroup')
-            msgs = msg_group.findAll('div', recursive=False)[1].findAll('div', recursive=False)
+            if len(msg_group) == 1:
+                index = 0
+            else:
+                index = 1
+            
+            msgs = msg_group.findAll('div', recursive=False)[index].findAll('div', recursive=False)
             if msgs:
                 msgs.reverse()
             for msg in msgs:
