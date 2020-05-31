@@ -77,11 +77,13 @@ facebook.API.get_comments(post_id, num, start)
   - post_id : target post id
   - num : the number of commnents you want
   - start : the last comment you want to start
-- return 4 lists, it will start from the last comment
-  - all comments id
-  - all comments user
-  - all comments content
-  - all comments time
+- return 
+  - a list of tuple start with the start comment:
+    - the id of commnents
+    - the user of comments
+    - the content of comments 
+    - the time of comments
+
 
 ### delete_comment
 ```python

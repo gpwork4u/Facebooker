@@ -239,7 +239,7 @@ class API:
 
 
 
-        return comments_id, users, comments_contents, comments_time
+        return zip(comments_id, users, comments_contents, comments_time)
 
     def delete_comment(self, post_id, comment_id):
         if not self.login_check:
