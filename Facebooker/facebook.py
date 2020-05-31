@@ -239,7 +239,7 @@ class API:
 
 
 
-        return zip(comments_id, users, comments_contents, comments_time)
+        return list(zip(comments_id, users, comments_contents, comments_time))
 
     def delete_comment(self, post_id, comment_id):
         if not self.login_check:
@@ -305,7 +305,7 @@ class API:
             href = pre_page.find('a').get('href')
             url = 'https://m.facebook.com' + href
 
-        return zip(send_from, content, time)
+        return list(zip(send_from, content, time))
 
     def get_unread_chat(self):
         if not self.login_check:
