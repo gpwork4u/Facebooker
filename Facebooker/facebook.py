@@ -271,25 +271,41 @@ class API:
         self.session.post(url, data=data)
 
     # messenger method
-    def get_msg(self, chat_room_id):
+    def get_msg(self, chat_room_id, num=1):
         if not self.login_check:
             logging.error('You should login first')
             return
         url = 'https://m.facebook.com/messages/read/?tid=%s'%str(chat_room_id)
-        req = self.session.get(url)
-        soup = BeautifulSoup(req.text, 'lxml')
-        msg_group = soup.find('div', id='messageGroup')
-        msgs = msg_group.findAll('div', recursive=False)[-1].findAll('div', recursive=False)
         send_from = []
         content = []
         time = []
-        for msg in msgs:
-            content_class = letter_adder(msg.get('class')[-1], 1)
-            send_from.append(msg.find('strong').text)
-            content.append(msg.find('div', class_=content_class). \
-                                    find('div').find('span').text)
-            time.append(msg.find('abbr').text)
-        return send_from, content, time
+        while num > 0:
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text, 'lxml')
+            msg_group = soup.find('div', id='messageGroup')
+            msgs = msg_group.findAll('div', recursive=False)[1].findAll('div', recursive=False)
+            if msgs:
+                msgs.reverse()
+            for msg in msgs:
+                content_class = letter_adder(msg.get('class')[-1], 1)
+                msg_contents = msg.find('div', class_=content_class). \
+                                                    find('div').findAll('span')
+                for msg_content in msg_contents:
+                    send_from.append(msg.find('strong').text)
+                    content.append(msg_content.text)
+                    time.append(msg.find('abbr').text)
+                    num -= 1
+                    if num <= 0:
+                        break
+                if num <= 0:
+                    break
+            pre_page = msg_group.find('div', id='see_older')
+            if not pre_page:
+                break
+            href = pre_page.find('a').get('href')
+            url = 'https://m.facebook.com' + href
+
+        return zip(send_from, content, time)
 
     def get_unread_chat(self):
         if not self.login_check:

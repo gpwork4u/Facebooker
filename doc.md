@@ -124,17 +124,18 @@ facebook.API.send_msg(chat_room_id, content)
 
 ### get_msg
 ```python
-facebook.API.get_msg(chat_room_id)
+facebook.API.get_msg(chat_room_id ,num=1)
 ```
 > get messages from target char room
 
 - input:
   - chat_room_id : target user id or group id
-  
-- return 3 list:
-  - the user who send the message
-  - the message content
-  - the message time
+  - num : the number of message you want to get
+- return 
+  - a list of tuple start with the last message:
+    - the user who send the message
+    - the message content
+    - the message time
 
 ### get_unread_chat
 facebook.API.get_msg()
