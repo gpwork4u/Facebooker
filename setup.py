@@ -1,11 +1,11 @@
 import setuptools
-
+from Facebooker import version
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="Facebooker",
-    version="0.1.3",
+    version=version.V,
     author="gpwork4u",
     author_email="gpwork4u@gmail.com",
     description="An un official facebook api",
