@@ -291,17 +291,21 @@ class API:
                 msgs.reverse()
             for msg in msgs:
                 content_class = letter_adder(msg.get('class')[-1], 1)
-                msg_contents = msg.find('div', class_=content_class). \
-                                                    find('div').findAll('span')
-                for msg_content in msg_contents:
-                    send_from.append(msg.find('strong').text)
-                    content.append(msg_content.text)
-                    time.append(msg.find('abbr').text)
-                    num -= 1
+                try:
+                    msg_contents = msg.find('div', class_=content_class). \
+                                                        find('div').findAll('span')
+                    for msg_content in msg_contents:
+                        send_from.append(msg.find('strong').text)
+                        content.append(msg_content.text)
+                        time.append(msg.find('abbr').text)
+                        num -= 1
+                        if num <= 0:
+                            break
                     if num <= 0:
                         break
-                if num <= 0:
-                    break
+                except:
+                    logging.debug('Get non text message')
+                    pass
             pre_page = msg_group.find('div', id='see_older')
             if not pre_page:
                 break
