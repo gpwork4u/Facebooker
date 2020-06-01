@@ -167,8 +167,6 @@ class API:
                     break
             if len(posts_id) >= num:
                     break
-            req = self.session.get(url)
-            soup = BeautifulSoup(req.text, 'lxml')
             next_href = soup.find('div', id='u_0_0').find('a').get('href')
             url = 'https://m.facebook.com' + next_href
         return posts_id
