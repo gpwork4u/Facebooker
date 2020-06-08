@@ -46,7 +46,7 @@ facebook.API.get_post(post_id)
 
 ### get_user_post_list
 ```python
-facebook.API.post(user_id)
+facebook.API.get_user_post_list(user_id, num=10)
 ```
 > get posts on target user's wall
 - input
@@ -69,7 +69,7 @@ facebook.API.post(content, privacy_level, user_id)
 
 ### get_comments
 ```python
-facebook.API.get_comments(post_id, num, start)
+facebook.API.get_comments(post_id, num=10, start=0)
 ```
 > get all comments under the post
 
@@ -134,14 +134,15 @@ facebook.API.get_msg(chat_room_id ,num=1)
   - chat_room_id : target user id or group id
   - num : the number of message you want to get
 - return 
-  - a list of tuple start with the last message:
+  - a list of tuple start with the latest message:
     - the user who send the message
     - the message content
     - the message time
 
 ### get_unread_chat
+```
 facebook.API.get_msg()
-
+```
 > get chat room id that you have not read
 
 - return
