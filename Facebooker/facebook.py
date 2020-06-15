@@ -217,7 +217,6 @@ class API:
         data = {}
         for input_data in input_datas:
             data[input_data.get('name')] = input_data.get('value')
-        action = form.get('action')
         data['xc_message'] = content
         mp_encoder = MultipartEncoder(
             fields = data
