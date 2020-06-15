@@ -5,6 +5,8 @@ import logging
 import time
 import json
 from bs4 import BeautifulSoup
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
         string = chr(ord(string[0])+1) + chr(ord(string[1])+ num - 26)
@@ -191,7 +193,29 @@ class API:
             self.post_data['xc_message'] = content
             self.session.post(url, data=self.post_data)
 
-
+    def fanpage_post(self, content, fanpage_id):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        fanpage_id = str(fanpage_id)
+        url = 'https://m.facebook.com/composer/mbasic/?c_src=page_self' + \
+              '&referrer=pages_feed' + \
+              '&target=%s&cwevent=composer_entry&av=%s'%(fanpage_id,fanpage_id)
+        req = self.session.get(url)
+        soup = BeautifulSoup(req.text,'lxml')
+        form = soup.find('form', id='composer_form')
+        input_datas = form.findAll('input')
+        data = {}
+        for input_data in input_datas:
+            data[input_data.get('name')] = input_data.get('value')
+        action = form.get('action')
+        data['xc_message'] = content
+        mp_encoder = MultipartEncoder(
+            fields = data
+        )
+        self.session.post(url,
+                          data=mp_encoder,
+                          headers={'Content-Type': mp_encoder.content_type})
     # comment methods
     def get_comments(self, post_id, num=10, start=0):
         if not self.login_check:
