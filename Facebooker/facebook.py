@@ -180,6 +180,28 @@ class API:
             post_data['privacyx'] = privacy[privacy_level]
             self.session.post(url, data=post_data)
 
+    def group_post(self, content, group_id):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        post_data = {
+                        'fb_dtsg': self.fb_dtsg,
+                        'target': self.user_id,
+                        'c_src': 'feed',
+                        'cwevent': 'composer_entry',
+                        'referrer': 'feed',
+                        'ctype': 'inline',
+                        'cver': 'amber',
+                        'rst_icv': None,
+                        'view_post': 'view_post',
+                        }
+        url = 'https://m.facebook.com/composer/mbasic/'
+        post_data['xc_message'] = content
+        post_data['referrer'] = 'group'
+        post_data['c_src'] = 'group'
+        post_data['target'] = group_id
+        self.session.post(url, data=post_data)
+
     def fanpage_post(self, content, fanpage_id):
         if not self.login_check:
             logging.error('You should login first')
