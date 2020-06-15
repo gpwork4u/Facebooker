@@ -67,30 +67,6 @@ class API:
         
         self.login_check = True
         self.__save_cookies(email+'.cookie')
-        self.post_to_user_data = {
-                                    'fb_dtsg':self.fb_dtsg,
-                                    'xhpc_timeline':'1',
-                                    'c_src':'timeline_other',
-                                    'cwevent':'composer_entry',
-                                    'referrer':'timeline',
-                                    'ctype':'inline',
-                                    'cver':'amber',
-                                    'rst_icv':None,
-                                    'view_post':'view_post'
-                                 }
-                                    
-        self.post_data = {
-                            'fb_dtsg': self.fb_dtsg,
-                            'privacyx': '291667064279714',
-                            'target': self.user_id,
-                            'c_src': 'feed',
-                            'cwevent': 'composer_entry',
-                            'referrer': 'feed',
-                            'ctype': 'inline',
-                            'cver': 'amber',
-                            'rst_icv': None,
-                            'view_post': 'view_post',
-                         }
         self.send_msg_data = {
                                 'fb_dtsg': self.fb_dtsg,
                                 'body':'',
@@ -178,20 +154,31 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
+        post_data = {
+                        'fb_dtsg': self.fb_dtsg,
+                        'target': self.user_id,
+                        'c_src': 'feed',
+                        'cwevent': 'composer_entry',
+                        'referrer': 'feed',
+                        'ctype': 'inline',
+                        'cver': 'amber',
+                        'rst_icv': None,
+                        'view_post': 'view_post',
+                        }
         public = 300645083384735 # level 0
         freind = 291667064279714 # level 1
         privacy = [public, freind]
         url = 'https://m.facebook.com/composer/mbasic/'
-        self.post_data['xc_message'] = content
+        post_data['xc_message'] = content
         if user_id:
-            self.post_to_user_data['target'] = user_id
-            self.post_to_user_data['id'] = user_id
-            self.post_to_user_data['xc_message'] = content
-            self.session.post(url, data=self.post_to_user_data)
+            post_data['referrer'] = 'timeline'
+            post_data['c_src'] = 'timeline_other'
+            post_data['target'] = user_id
+            post_data['id'] = user_id
+            self.session.post(url, data=post_data)
         else:
-            self.post_data['privacyx'] = privacy[privacy_level]
-            self.post_data['xc_message'] = content
-            self.session.post(url, data=self.post_data)
+            post_data['privacyx'] = privacy[privacy_level]
+            self.session.post(url, data=post_data)
 
     def fanpage_post(self, content, fanpage_id):
         if not self.login_check:
