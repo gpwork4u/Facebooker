@@ -21,11 +21,12 @@ it will save cookie when first time login, or you have cookie file it will login
 
 ### get_post
 ```python
-facebook.API.get_post(post_id)
+facebook.API.get_post(post_id, group_id=None)
 ```
 > get target post
 - input:
   - post_id : target post id
+  - group_id : the group of the target post, if target post is not in a group set None.
 - return:
   - a html format of the post 
   
