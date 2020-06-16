@@ -55,18 +55,60 @@ facebook.API.get_user_post_list(user_id, num=10)
 
 - return
   - all posts id on user's wall
+### get_group_post_list
+```python
+facebook.API.get_group_post_list(group_id, num=10)
+```
+> get posts on target user's wall
+- input
+  - group_id : target user id
+  - num : the number of posts
 
+- return
+  - the number posts id in group
+
+### get_fanpage_post_list
+```python
+facebook.API.get_group_post_list(fanpage_id, num=10)
+```
+> get posts on target user's wall
+- input
+  - group_id : target user id
+  - num : the number of posts
+
+- return
+  - the number posts id in group
 ### post
 ```python
-facebook.API.post(content, privacy_level, user_id)
+facebook.API.post(content, privacy_level=0)
 ```
-> post a post to your or friend's wall
+> post a post
 - input
-  - content : the post content you want
-  - privacy_level: privacy level of your post, 0 for public, 1 for freind, if user_id isn't None, it will not effect
-  - user_id : target user id, leave None if you want to post on your wall
+  - content : the post content
+  - privacy_level: privacy level of your post, 0 for public, 1 for freind
 
+### post_to_target
+```python
+facebook.API.post_to_target(self, content, target_id=None, target_type=None)
+```
+> post a post to target's wall
+- input
+  - content : the post content
+  - target_id : the target's id ,it can be user, group or fanpage
+  - target_type : the target's type
+    - 0 : user
+    - 1 : group
+    - 2 : fanpage
 
+### fanpage post
+```python
+facebook.API.fanpage_post(self, content, fanpage_id)
+```
+> post a fanpage post
+- input
+  - content : the post content
+  - fanpage_id : the fanpage's id of the post 
+  
 ### get_comments
 ```python
 facebook.API.get_comments(post_id, num=10, start=0)
