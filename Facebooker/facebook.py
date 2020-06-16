@@ -5,7 +5,6 @@ import logging
 import time
 import json
 from bs4 import BeautifulSoup
-from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
