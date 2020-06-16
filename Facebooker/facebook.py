@@ -6,6 +6,7 @@ import time
 import json
 from bs4 import BeautifulSoup
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+from . import privacy
 
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
@@ -73,7 +74,17 @@ class API:
                                 'send':'傳送',
                                 'wwwupp':'C3'
                               }
-
+        self.post_data_template = {
+                                    'fb_dtsg': self.fb_dtsg,
+                                    'target': self.user_id,
+                                    'c_src': 'feed',
+                                    'cwevent': 'composer_entry',
+                                    'referrer': 'feed',
+                                    'ctype': 'inline',
+                                    'cver': 'amber',
+                                    'rst_icv': None,
+                                    'view_post': 'view_post',
+                                  }
     def __save_cookies(self, filename):
         with open(filename, 'wb') as f:
             pickle.dump(self.session.cookies, f)
@@ -150,80 +161,51 @@ class API:
         return posts_id
 
 
-    def post(self, content, privacy_level=0, user_id=None):
+    def post(self, content, privacy_level=0):
         if not self.login_check:
             logging.error('You should login first')
             return
-        post_data = {
-                        'fb_dtsg': self.fb_dtsg,
-                        'target': self.user_id,
-                        'c_src': 'feed',
-                        'cwevent': 'composer_entry',
-                        'referrer': 'feed',
-                        'ctype': 'inline',
-                        'cver': 'amber',
-                        'rst_icv': None,
-                        'view_post': 'view_post',
-                        }
+        post_data = self.post_data_template
         public = 300645083384735 # level 0
         freind = 291667064279714 # level 1
         privacy = [public, freind]
         url = 'https://m.facebook.com/composer/mbasic/'
         post_data['xc_message'] = content
-        if user_id:
-            post_data['referrer'] = 'timeline'
-            post_data['c_src'] = 'timeline_other'
-            post_data['target'] = user_id
-            post_data['id'] = user_id
-            self.session.post(url, data=post_data)
-        else:
-            post_data['privacyx'] = privacy[privacy_level]
-            self.session.post(url, data=post_data)
+        post_data['privacyx'] = privacy[privacy_level]
+        self.session.post(url, data=post_data)
 
-    def group_post(self, content, group_id):
+    def post_to_target(self, content, target_id=None, target_type=None):
+        ''' target_type:
+                0 : user
+                1 : group
+                2 : fanpage
+        '''
         if not self.login_check:
             logging.error('You should login first')
             return
-        post_data = {
-                        'fb_dtsg': self.fb_dtsg,
-                        'target': self.user_id,
-                        'c_src': 'feed',
-                        'cwevent': 'composer_entry',
-                        'referrer': 'feed',
-                        'ctype': 'inline',
-                        'cver': 'amber',
-                        'rst_icv': None,
-                        'view_post': 'view_post',
-                        }
+        referrer = ['timeline', 'group', 'pages_feed']
+        c_src = ['timeline_other', 'group', 'page_self']
+        post_data = self.post_data_template
         url = 'https://m.facebook.com/composer/mbasic/'
         post_data['xc_message'] = content
-        post_data['referrer'] = 'group'
-        post_data['c_src'] = 'group'
-        post_data['target'] = group_id
+        post_data['referrer'] = referrer[target_type]
+        post_data['c_src'] = c_src[target_type]
+        post_data['target'] = target_id
+        post_data['id'] = target_id
         self.session.post(url, data=post_data)
 
     def fanpage_post(self, content, fanpage_id):
         if not self.login_check:
             logging.error('You should login first')
             return
-        fanpage_id = str(fanpage_id)
-        url = 'https://m.facebook.com/composer/mbasic/?c_src=page_self' + \
-              '&referrer=pages_feed' + \
-              '&target=%s&cwevent=composer_entry&av=%s'%(fanpage_id,fanpage_id)
-        req = self.session.get(url)
-        soup = BeautifulSoup(req.text,'lxml')
-        form = soup.find('form', id='composer_form')
-        input_datas = form.findAll('input')
-        data = {}
-        for input_data in input_datas:
-            data[input_data.get('name')] = input_data.get('value')
-        data['xc_message'] = content
-        mp_encoder = MultipartEncoder(
-            fields = data
-        )
-        self.session.post(url,
-                          data=mp_encoder,
-                          headers={'Content-Type': mp_encoder.content_type})
+        post_data = self.post_data_template
+        url = 'https://m.facebook.com/composer/mbasic/?av=%s'%str(fanpage_id)
+        post_data['xc_message'] = content
+        post_data['referrer'] = 'pages_feed'
+        post_data['c_src'] = 'page_self'
+        post_data['target'] = fanpage_id
+        self.session.post(url, data=post_data)
+
     # comment methods
     def get_comments(self, post_id, num=10, start=0):
         if not self.login_check:
