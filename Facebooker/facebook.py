@@ -6,7 +6,6 @@ import time
 import json
 from bs4 import BeautifulSoup
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-from . import privacy
 
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
@@ -94,12 +93,15 @@ class API:
             self.session.cookies.update(pickle.load(f))
     
     # post methods
-    def get_post(self, post_id):
+    def get_post(self, post_id, group_id=None):
         if not self.login_check:
             logging.error('You should login first')
             return
         url = 'https://m.facebook.com/story.php?' + \
               'story_fbid=%s&id=1'%str(post_id)
+        if group_id:
+            url = 'https://m.facebook.com/groups/%s?'%str(group_id) + \
+                  'view=permalink&id='%str(post_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
         post_content = soup.find('div',class_='z')
@@ -160,6 +162,49 @@ class API:
             url = 'https://m.facebook.com' + next_href
         return posts_id
 
+    def get_group_post_list(self, group_id, num=10):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        url = 'https://m.facebook.com/%s'%str(group_id)
+        posts_id = []
+        while len(posts_id) < num:
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text, 'lxml')
+            posts = soup.find('section').findAll('article', recursive=False)
+            for post in posts:
+                data = json.loads(post.get('data-ft'))
+                post_id = data['mf_story_key']
+                posts_id.append(post_id)
+                if len(posts_id) >= num:
+                    break
+            if len(posts_id) >= num:
+                    break
+            next_href = soup.find('section').next_sibling.find('a').get('href')
+            url = 'https://m.facebook.com' + next_href
+        return posts_id
+    
+    def get_fanpage_post_list(self, fanpage_id, num=10):
+        if not self.login_check:
+            logging.error('You should login first')
+            return
+        url = 'https://m.facebook.com/%s'%str(fanpage_id)
+        posts_id = []
+        while len(posts_id) < num:
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text, 'lxml')
+            posts = soup.find('section').findAll('article', recursive=False)
+            for post in posts:
+                data = json.loads(post.get('data-ft'))
+                post_id = data['mf_story_key']
+                posts_id.append(post_id)
+                if len(posts_id) >= num:
+                    break
+            if len(posts_id) >= num:
+                    break
+            next_href = soup.find('div', id='recent').next_sibling.find('a').get('href')
+            url = 'https://m.facebook.com' + next_href
+        return posts_id
 
     def post(self, content, privacy_level=0):
         if not self.login_check:
