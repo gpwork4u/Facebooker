@@ -101,7 +101,7 @@ facebook.API.post_to_target(self, content, target_id=None, target_type=None)
     - 1 : group
     - 2 : fanpage
 
-### fanpage post
+### fanpage_post
 ```python
 facebook.API.fanpage_post(self, content, fanpage_id)
 ```
