@@ -8,3 +8,4 @@ Facebooker.egg-info/
 *.ipynb
 *.html
 dist/
+install.sh
