@@ -7,8 +7,13 @@ import json
 from bs4 import BeautifulSoup
 try:
     import data_type
+    import privacy_level
+    import like_action
+
 except ModuleNotFoundError:
     from . import data_type
+    from . import privacy_level
+    from . import like_action
 
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
