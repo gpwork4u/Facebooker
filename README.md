@@ -1,6 +1,6 @@
 # Facebooker
  An unofficial facebook api
-![logo.png](./logo.png)
+ <img src="./logo.png" width="200">
 ## Requirement
 - [ ] python3.6
 
