@@ -5,6 +5,10 @@ import logging
 import time
 import json
 from bs4 import BeautifulSoup
+try:
+    import data_type
+except ModuleNotFoundError:
+    from . import data_type
 
 def letter_adder(string, num):
     if ord(string[1]) + num%26 >= ord('z'):
@@ -205,17 +209,15 @@ class API:
             url = 'https://m.facebook.com' + next_href
         return posts_id
 
-    def post(self, content, privacy_level=0):
+    def post(self, content, 
+             privacy_level=data_type.privacy_level.PUBLIC):
         if not self.login_check:
             logging.error('You should login first')
             return
         post_data = self.post_data_template
-        public = 300645083384735 # level 0
-        freind = 291667064279714 # level 1
-        privacy = [public, freind]
         url = 'https://m.facebook.com/composer/mbasic/'
         post_data['xc_message'] = content
-        post_data['privacyx'] = privacy[privacy_level]
+        post_data['privacyx'] = privacy_level
         self.session.post(url, data=post_data)
 
     def post_to_target(self, content, target_id=None, target_type=None):
