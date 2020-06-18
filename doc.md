@@ -5,6 +5,13 @@
 from Facebooker import facebook
 fb = facebook.API.login(email, password)
 ```
+## Data Type
+
+### comments_info
+- comments_info.id : the comment's id
+- comments_info.author : the comment send from
+- comments_info.content : content of the comment
+- comments_info.time : the comment send time
 
 ## API member functions
 ### login
@@ -81,12 +88,14 @@ facebook.API.get_group_post_list(fanpage_id, num=10)
   - the number posts id in group
 ### post
 ```python
-facebook.API.post(content, privacy_level=0)
+facebook.API.post(content, privacy_level=facebook.data_type.privacy_level.PUBLIC)
 ```
 > post a post
 - input
   - content : the post content
-  - privacy_level: privacy level of your post, 0 for public, 1 for freind
+  - privacy_level: facebook.data_type.privacy_level.PUBLIC for public
+                   facebook.data_type.privacy_level.FRIENDS for friend
+                   
 
 ### post_to_target
 ```python
@@ -121,12 +130,7 @@ facebook.API.get_comments(post_id, num=10, start=0)
   - num : the number of commnents you want
   - start : the last comment you want to start
 - return 
-  - a list of tuple start with the start comment:
-    - the id of commnents
-    - the user of comments
-    - the content of comments 
-    - the time of comments
-
+  - a list of comment_info
 
 ### delete_comment
 ```python
@@ -189,5 +193,5 @@ facebook.API.get_msg()
 > get chat room id that you have not read
 
 - return
-  - a list chat room id have not read
+  - a list of chat room id that have not unread message
    
