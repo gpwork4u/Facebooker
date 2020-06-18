@@ -209,7 +209,8 @@ class API:
             url = 'https://m.facebook.com' + next_href
         return posts_id
 
-    def post(self, content, 
+    def post(self, 
+             content, 
              privacy_level=data_type.privacy_level.PUBLIC):
         if not self.login_check:
             logging.error('You should login first')
@@ -258,10 +259,7 @@ class API:
             logging.error('You should login first')
             return
         
-        comments_id = []
-        users = []
-        comments_contents = []
-        comments_time = []
+        comment_info_list = []
         while num > 0:
             url = 'https://m.facebook.com/story.php?' + \
                 'story_fbid=%s&id=1&p=%s'%(str(post_id),start)
@@ -278,10 +276,16 @@ class API:
                 return
             for comment in comments:
                 try:
-                    users.append(comment.find('h3').text)
-                    comments_id.append(comment.get('id'))
-                    comments_contents.append(comment.find('h3').next_sibling.text)
-                    comments_time.append(comment.find('abbr').text)
+                    comment_author = comment.find('h3').find('a').text
+                    comment_id = comment.get('id')
+                    comment_content = comment.find('h3').next_sibling.text
+                    comment_time = comment.find('abbr').text
+                    comment_info = data_type.comment_info(comment_id,
+                                                          comment_author,
+                                                          comment_content,
+                                                          comment_time
+                                                         )
+                    comment_info_list.append(comment_info)
                     num -= 1
                 except:
                     pass
@@ -297,7 +301,7 @@ class API:
 
 
 
-        return list(zip(comments_id, users, comments_contents, comments_time))
+        return comment_info_list
 
     def delete_comment(self, post_id, comment_id):
         if not self.login_check:
