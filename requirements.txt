@@ -1,4 +1,3 @@
 lxml
 requests
 beautifulsoup4
-requests-toolbelt
