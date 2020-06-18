@@ -9,3 +9,4 @@ Facebooker.egg-info/
 *.html
 dist/
 install.sh
+.env
