@@ -18,13 +18,13 @@ fb = facebook.API.login(email, password)
 - privacy_level.FRIENDS : post for friends
 
 ### like_action
-    like_action.LIKE
-    like_action.LOVE
-    like_action.CARE
-    like_action.HAHA
-    like_action.WOW
-    like_action.SAD
-    like_action.ANGRY
+- like_action.LIKE
+- like_action.LOVE
+- like_action.CARE
+- like_action.HAHA
+- like_action.WOW
+- like_action.SAD
+- like_action.ANGRY
 
 ## API functions
 ### login
@@ -100,8 +100,7 @@ facebook.API.post(content, privacy_level=facebook.data_type.privacy_level.PUBLIC
 > post a post
 - input
   - content : the post content
-  - privacy_level: facebook.data_type.privacy_level.PUBLIC for public
-                   facebook.data_type.privacy_level.FRIENDS for friend
+  - privacy_level : [privacy_level](#privacy_level)
                    
 
 ### post_to_target
