@@ -13,7 +13,20 @@ fb = facebook.API.login(email, password)
 - comments_info.content : content of the comment
 - comments_info.time : the comment send time
 
-## API member functions
+### privacy_level
+- privacy_level.PUBLIC : post for public
+- privacy_level.FRIENDS : post for friends
+
+### like_action
+    like_action.LIKE
+    like_action.LOVE
+    like_action.CARE
+    like_action.HAHA
+    like_action.WOW
+    like_action.SAD
+    like_action.ANGRY
+
+## API functions
 ### login
 ```python
 facebook.API.login(email, password)
@@ -39,18 +52,12 @@ facebook.API.get_post(post_id, group_id=None)
   
 ### like_post
 ```python
-  facebook.API.like_post(action, post_id)
+  facebook.API.like_post(post_id, action=facebook.data_type.like_action.LIKE)
 ```
 - inputs
-  - action : an 0 ~ 6 number
-    - 0 : like
-    - 1 : Love
-    - 2 : Care
-    - 3 : Haha
-    - 4 : Wow
-    - 5 : Sad
-    - 6 : Angry
   - post_id : target post id
+  - action : [like_action](#like_action)
+
 
 ### get_user_post_list
 ```python
@@ -130,7 +137,7 @@ facebook.API.get_comments(post_id, num=10, start=0)
   - num : the number of commnents you want
   - start : the last comment you want to start
 - return 
-  - a list of comment_info
+  - a list of [comment_info](#comments_info)
 
 ### delete_comment
 ```python
