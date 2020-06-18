@@ -117,7 +117,7 @@ class API:
             logging.error('This post is not supported or you don\'t have acess authority')
         return post_content
 
-    def like_post(self, post_id, action=data_type.like_action.LIKE):
+    def like_post(self, post_id, action=like_action.LIKE):
 
         if not self.login_check:
             logging.error('You should login first')
@@ -206,7 +206,7 @@ class API:
 
     def post(self, 
              content, 
-             privacy_level=data_type.privacy_level.PUBLIC):
+             privacy_level=privacy_level.PUBLIC):
         if not self.login_check:
             logging.error('You should login first')
             return
