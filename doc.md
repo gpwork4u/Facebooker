@@ -13,18 +13,19 @@ fb = facebook.API.login(email, password)
 - comments_info.content : content of the comment
 - comments_info.time : the comment send time
 
+## Option
 ### privacy_level
-- privacy_level.PUBLIC : post for public
-- privacy_level.FRIENDS : post for friends
+- facebook.privacy_level.PUBLIC : post for public
+- facebook.privacy_level.FRIENDS : post for friends
 
 ### like_action
-- like_action.LIKE
-- like_action.LOVE
-- like_action.CARE
-- like_action.HAHA
-- like_action.WOW
-- like_action.SAD
-- like_action.ANGRY
+- facebook.like_action.LIKE
+- facebook.like_action.LOVE
+- facebook.like_action.CARE
+- facebook.like_action.HAHA
+- facebook.like_action.WOW
+- facebook.like_action.SAD
+- facebook.like_action.ANGRY
 
 ## API functions
 ### login
