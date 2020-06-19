@@ -4,6 +4,7 @@ import os
 import logging
 import time
 import json
+from requests_toolbelt import MultipartEncoder
 from bs4 import BeautifulSoup
 try:
     import data_type
@@ -247,6 +248,27 @@ class API:
         post_data['c_src'] = 'page_self'
         post_data['target'] = fanpage_id
         self.session.post(url, data=post_data)
+
+    def fanpage_post_photo(self, text_content, image, fanpage_id):
+        url = 'https://m.facebook.com/composer/mbasic/' + \
+                        '?c_src=page_self&referrer=pages_feed&' + \
+                        'target=%s&'%fanpage_id + \
+                        'icv=lgc_view_photo&av=%s'%fanpage_id
+        req = self.session.get(url)
+        soup = BeautifulSoup(req.text,'lxml')
+        form = soup.find('form')
+        all_input_data = form.findAll('input')
+        data = {}
+        for input_data in all_input_data:
+            data[input_data.get('name')] = input_data.get('value')
+
+        url = 'https://upload.facebook.com/_mupload_/composer/?av=%s'%fanpage_id
+        data['file1'] = ('image',image,'image')
+        data['xc_message'] = text_content
+        m_data = MultipartEncoder(
+                        fields = data
+                 )
+        self.session.post(url, data=m_data, headers={'Content-Type': m_data.content_type})
 
     # comment methods
     def get_comments(self, post_id, num=10, start=0):

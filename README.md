@@ -9,7 +9,7 @@
 - [ ] lxml
 - [ ] requests
 - [ ] bs4
-
+- [ ] requests_toolbelt
 ### Install
 ```
 $ pip install Facebooker

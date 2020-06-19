@@ -106,7 +106,7 @@ facebook.API.post(content, privacy_level=facebook.data_type.privacy_level.PUBLIC
 
 ### post_to_target
 ```python
-facebook.API.post_to_target(self, content, target_id=None, target_type=None)
+facebook.API.post_to_target(content, target_id=None, target_type=None)
 ```
 > post a post to target's wall
 - input
@@ -119,11 +119,22 @@ facebook.API.post_to_target(self, content, target_id=None, target_type=None)
 
 ### fanpage_post
 ```python
-facebook.API.fanpage_post(self, content, fanpage_id)
+facebook.API.fanpage_post(content, fanpage_id)
 ```
 > post a fanpage post
 - input
   - content : the post content
+  - fanpage_id : the fanpage's id of the post 
+  
+### fanpage_post_photo
+```
+facebook.API.fanpage_post_photo(text_content, image, fanpage_id)
+```
+> post a fanpage post with an image
+
+- input
+  - text_content : the post content text
+  - image : the post image which type is _io.BufferedReader
   - fanpage_id : the fanpage's id of the post 
   
 ### get_comments
