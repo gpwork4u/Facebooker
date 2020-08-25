@@ -7,11 +7,17 @@ fb = facebook.API.login(email, password)
 ```
 ## Data Type
 
-### comments_info
-- comments_info.id : the comment's id
-- comments_info.author : the comment send from
-- comments_info.content : content of the comment
-- comments_info.time : the comment send time
+### PostInfo
+- PostInfo.id : the post's id
+- PostInfo.author : the post send from
+- PostInfo.content : post of the comment
+- PostInfo.time : the post send time
+
+### CommentInfo
+- CommentInfo.id : the comment's id
+- CommentInfo.author : the comment send from
+- CommentInfo.content : content of the comment
+- CommentInfo.time : the comment send time
 
 ## Option
 ### privacy_level
@@ -49,7 +55,7 @@ facebook.API.get_post(post_id, group_id=None)
   - post_id : target post id
   - group_id : the group of the target post, if target post is not in a group set None.
 - return:
-  - a html format of the post 
+  - a PostInfo object 
   
 ### like_post
 ```python
@@ -148,7 +154,7 @@ facebook.API.get_comments(post_id, num=10, start=0)
   - num : the number of commnents you want
   - start : the last comment you want to start
 - return 
-  - a list of [comment_info](#comments_info)
+  - a list of [comment_info](#comments_info) object
 
 ### delete_comment
 ```python

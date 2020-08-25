@@ -47,7 +47,7 @@ class API:
         # get input field
         self.session.cookies.clear()
         if os.path.isfile(email+'.cookie'):
-            self.__load_cookies(email+'.cookie')
+            self._load_cookies(email+'.cookie')
         else:
             url = 'https://www.facebook.com/'
             req = self.session.get(url)
@@ -75,7 +75,7 @@ class API:
             return False
         
         self.login_check = True
-        self.__save_cookies(email+'.cookie')
+        self._save_cookies(email+'.cookie')
         self.send_msg_data = {
                                 'fb_dtsg': self.fb_dtsg,
                                 'body':'',
@@ -93,11 +93,11 @@ class API:
                                     'rst_icv': None,
                                     'view_post': 'view_post',
                                   }
-    def __save_cookies(self, filename):
+    def _save_cookies(self, filename):
         with open(filename, 'wb') as f:
             pickle.dump(self.session.cookies, f)
 
-    def __load_cookies(self, filename):
+    def _load_cookies(self, filename):
         with open(filename,'rb') as f:
             self.session.cookies.update(pickle.load(f))
     
@@ -114,9 +114,20 @@ class API:
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
         post_content = soup.find('div',class_='z')
+        author = post_content.find('h3').text
+        content_lines = post_content.find('div', {'data-ft':'{"tn":"*s"}'}).findAll('p')
+        content = ''
+        for content_line in content_lines:
+            content += content_line.text
+            content += '\n'
+        time = post_content.find('footer').find('abbr').text
+        post_info = data_type.PostInfo(post_id,
+                                       author,
+                                       content,
+                                       time)
         if not post_content:
             logging.error('This post is not supported or you don\'t have acess authority')
-        return post_content
+        return post_info
 
     def like_post(self, post_id, action=like_action.LIKE):
 
