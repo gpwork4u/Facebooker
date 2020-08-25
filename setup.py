@@ -21,7 +21,8 @@ setuptools.setup(
     install_requires=[
         'lxml',
         'beautifulsoup4',
-        'requests'
+        'requests',
+        'requests_toolbelt'
     ],
     python_requires='>=3.6',
 )
