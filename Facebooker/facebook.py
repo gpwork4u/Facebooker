@@ -282,7 +282,7 @@ class API:
         self.session.post(url, data=m_data, headers={'Content-Type': m_data.content_type})
 
     # comment methods
-    def get_comments(self, post_id, num=10, start=0):
+    def get_comments(self, post_id, group_id=None, num=10, start=0):
         if not self.login_check:
             logging.error('You should login first')
             return
@@ -291,11 +291,15 @@ class API:
         while num > 0:
             url = 'https://m.facebook.com/story.php?' + \
                 'story_fbid=%s&id=1&p=%s'%(str(post_id),start)
+            if group_id:
+                url = 'https://m.facebook.com/groups/%s?view=permalink&id=%s'%(group_id, post_id)
             req = self.session.get(url)
             soup = BeautifulSoup(req.text,'lxml')
             try:
                 div = soup.find('div',id='ufi_%s'%str(post_id))
                 comment_div = div.find('div',id='sentence_%s'%str(post_id)).next_sibling
+                if group_id:
+                    comment_div = comment_div.next_sibling
                 comments = comment_div.findAll('div', recursive=False)
                 comments.reverse()
             except Exception as e:
@@ -308,7 +312,7 @@ class API:
                     comment_id = comment.get('id')
                     comment_content = comment.find('h3').next_sibling.text
                     comment_time = comment.find('abbr').text
-                    comment_info = data_type.comment_info(comment_id,
+                    comment_info = data_type.CommentInfo(comment_id,
                                                           comment_author,
                                                           comment_content,
                                                           comment_time
