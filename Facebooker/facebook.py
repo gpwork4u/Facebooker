@@ -145,7 +145,7 @@ class API:
             action_href = [a.get('href')  for a in root.findAll('a')][:-1]
             like_url = 'https://m.facebook.com' + action_href[action]
             self.session.get(like_url)
-        except:
+        except Exception:
             logging.error('You don\'t have access authority')
 
     def get_user_post_list(self, user_id, num=10):
@@ -298,9 +298,9 @@ class API:
             try:
                 div = soup.find('div',id='ufi_%s'%str(post_id))
                 comment_div = div.find('div',id='sentence_%s'%str(post_id)).next_sibling
-                if group_id:
-                    comment_div = comment_div.next_sibling
                 comments = comment_div.findAll('div', recursive=False)
+                if group_id and not comments:
+                    comments = comment_div.next_sibling.findAll('div', recursive=False)
                 comments.reverse()
             except Exception as e:
                 logging.debug(e)
@@ -312,15 +312,17 @@ class API:
                     comment_id = comment.get('id')
                     comment_content = comment.find('h3').next_sibling.text
                     comment_time = comment.find('abbr').text
+                    comment_url = 'https://m.facebook.com' + comment.find('div', id='comment_replies_more_1:%s_%s'%(post_id, comment_id)).find('a').get('href')
                     comment_info = data_type.CommentInfo(comment_id,
-                                                          comment_author,
-                                                          comment_content,
-                                                          comment_time
-                                                         )
+                                                         comment_author,
+                                                         comment_content,
+                                                         comment_time,
+                                                         comment_url
+                                                        )
                     comment_info_list.append(comment_info)
                     num -= 1
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
             pre_page_div = comment_div.find('div', id='see_prev_%s'%str(post_id))
 
@@ -354,7 +356,7 @@ class API:
         return self.session.post(url, data=comment)
 
     # reply method
-    def reply(self, post_id ,comment_id, content):
+    def reply(self, post_id ,comment_id, content, num=10, start=0):
         if not self.login_check:
             logging.error('You should login first')
             return
@@ -363,6 +365,51 @@ class API:
               '&ft_ent_identifier=%s'%str(post_id)
         data = {'fb_dtsg': self.fb_dtsg, 'comment_text':content}
         self.session.post(url, data=data)
+
+    def get_replies(self, post_id, comment_id, group_id=None, num=10):
+        comments = self.get_comments(post_id, group_id)
+        for comment in comments:
+            if comment.id == comment_id:
+                break
+        url = comment.url
+        req = self.session.get(url)
+        reply_info_list = []
+        while num > 0:
+            req = self.session.get(url)
+            soup = BeautifulSoup(req.text,'lxml')
+            try:
+                soup = BeautifulSoup(req.text, 'lxml')
+                replies_div = soup.find('div', id=str(comment_id)).next_sibling
+                replies = replies_div.findAll('div', recursive=False)
+                replies.reverse()
+            except Exception as e:
+                logging.debug(e)
+                logging.error('You don\'t have access authority')
+                return
+            for reply in replies:
+                try:
+                    reply_author = reply.find('h3').find('a').text
+                    reply_id = reply.get('id')
+                    reply_content = reply.find('h3').next_sibling.text
+                    reply_time = reply.find('abbr').text
+                    reply_info = data_type.ReplyInfo(reply_id,
+                                                     reply_author,
+                                                     reply_content,
+                                                     reply_time,
+                                                    )
+                    reply_info_list.append(reply_info)
+                    num -= 1
+                except Exception:
+                    pass
+            pre_page_div = soup.find('div', id='comment_replies_more_1:%s_%s'%(str(post_id),str(comment_id)))
+
+            if pre_page_div:
+                pre_href = pre_page_div.find('a').get('href')
+                url = 'https://m.facebook.com' + pre_href
+            else:
+                break
+        return reply_info_list
+
 
     # messenger method
     def get_msg(self, chat_room_id, num=1):
@@ -399,7 +446,7 @@ class API:
                             break
                     if num <= 0:
                         break
-                except:
+                except Exception:
                     logging.debug('Get non text message')
                     pass
             pre_page = msg_group.find('div', id='see_older')
