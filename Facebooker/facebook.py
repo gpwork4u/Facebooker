@@ -356,7 +356,7 @@ class API:
         return self.session.post(url, data=comment)
 
     # reply method
-    def reply(self, post_id ,comment_id, content, num=10, start=0):
+    def reply(self, post_id ,comment_id, content):
         if not self.login_check:
             logging.error('You should login first')
             return
