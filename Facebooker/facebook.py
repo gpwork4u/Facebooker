@@ -312,7 +312,9 @@ class API:
                     comment_id = comment.get('id')
                     comment_content = comment.find('h3').next_sibling.text
                     comment_time = comment.find('abbr').text
-                    comment_url = 'https://m.facebook.com' + comment.find('div', id='comment_replies_more_1:%s_%s'%(post_id, comment_id)).find('a').get('href')
+                    comment_url = 'https://m.facebook.com' + \
+                                  comment.find('span', id='like_%s_%s'%(post_id, comment_id)).\
+                                  next_sibling.next_sibling.get('href')
                     comment_info = data_type.CommentInfo(comment_id,
                                                          comment_author,
                                                          comment_content,
