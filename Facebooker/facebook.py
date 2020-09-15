@@ -324,7 +324,7 @@ class API:
                     comment_info_list.append(comment_info)
                     num -= 1
                 except Exception as e:
-                    print(e)
+                    pass
 
             pre_page_div = comment_div.find('div', id='see_prev_%s'%str(post_id))
 
