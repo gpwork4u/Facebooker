@@ -181,6 +181,7 @@ class API:
         while len(posts_id) < num:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
+            soup = soup.find('div',id='m_group_stories_container')
             posts = soup.find('section').findAll('article', recursive=False)
             for post in posts:
                 data = json.loads(post.get('data-ft'))
