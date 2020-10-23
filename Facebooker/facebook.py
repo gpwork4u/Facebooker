@@ -110,7 +110,7 @@ class API:
               'story_fbid=%s&id=1'%str(post_id)
         if group_id:
             url = 'https://mbasic.facebook.com/groups/%s?'%str(group_id) + \
-                  'view=permalink&id='%str(post_id)
+                  'view=permalink&id=%s'%str(post_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
         post_content = soup.find('div',class_='z')
