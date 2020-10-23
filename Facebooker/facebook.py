@@ -113,13 +113,17 @@ class API:
                   'view=permalink&id=%s'%str(post_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text,'lxml')
-        post_content = soup.find('div',class_='z')
-        author = post_content.find('h3').text
-        content_lines = post_content.find('div', {'data-ft':'{"tn":"*s"}'}).findAll('p')
-        content = ''
-        for content_line in content_lines:
-            content += content_line.text
-            content += '\n'
+        post_content = soup.find('div',id='m_story_permalink_view')
+        author = post_content.find('h3', recursive=True).text
+        content = post_content.find('div', {'data-ft':'{"tn":"*s"}'}).find('p')
+        if content:
+            content = content.next_sibling
+        else:
+            content = ''
+        content = str(content).replace('<br/> ', '\n')
+        content_start = content.find('>') + 1
+        content_end = content[content_start:].find('<') + content_start
+        content = content[content_start:content_end]
         time = post_content.find('footer').find('abbr').text
         post_info = data_type.PostInfo(post_id,
                                        author,
