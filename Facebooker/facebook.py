@@ -4,6 +4,7 @@ import os
 import logging
 import time
 import json
+import re
 from requests_toolbelt import MultipartEncoder
 from bs4 import BeautifulSoup
 try:
@@ -115,15 +116,11 @@ class API:
         soup = BeautifulSoup(req.text,'lxml')
         post_content = soup.find('div',id='m_story_permalink_view')
         author = post_content.find('h3', recursive=True).text
-        content = post_content.find('div', {'data-ft':'{"tn":"*s"}'}).find('p')
-        if content:
-            content = content.next_sibling
-        else:
-            content = ''
-        content = str(content).replace('<br/> ', '\n')
-        content_start = content.find('>') + 1
-        content_end = content[content_start:].find('<') + content_start
-        content = content[content_start:content_end]
+        content = str(post_content.find('div', {'data-ft':'{"tn":"*s"}'}))
+        content = content.replace('<br/> ', '\n')
+        content = content.replace('<br/>', '\n')
+        content = re.sub('<[^>]+> ', '', content)
+        content = re.sub('<[^>]+>', '', content)
         time = post_content.find('footer').find('abbr').text
         post_info = data_type.PostInfo(post_id,
                                        author,
