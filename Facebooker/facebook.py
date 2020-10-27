@@ -283,6 +283,28 @@ class API:
                  )
         self.session.post(url, data=m_data, headers={'Content-Type': m_data.content_type})
 
+    def group_sell_post(self, 
+                        group_id,
+                        title, price,
+                        location='',
+                        content='',
+                        images=[],
+                        currency='TWD'):
+        url = 'https://mbasic.facebook.com/groups/sell/_edit/post/'
+        data = {}
+        data['fb_dtsg'] = self.fb_dtsg
+        data['composer_attachment_sell_title'] = title
+        data['composer_attachment_sell_price'] = str(price)
+        data['composer_attachment_sell_pickup_note'] = location
+        data['composer_attachment_sell_currency'] = currency
+        data['target'] = str(group_id)
+        for i, image in enumerate(images[:3]):
+            data['file%d'%i] = image
+        data['xc_message'] = content
+        m_data = MultipartEncoder(
+                        fields = data
+                )
+        self.session.post(url, data=m_data, headers={'Content-Type': m_data.content_type})
     # comment methods
     def get_comments(self, post_id, group_id=None, num=10, start=0):
         if not self.login_check:
