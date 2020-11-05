@@ -49,11 +49,16 @@ class API:
         self.session.cookies.clear()
         if os.path.isfile(email+'.cookie'):
             self._load_cookies(email+'.cookie')
+            try:
+                self.user_id = self.session.cookies.get_dict()['c_user']
+            except:
+                logging.error('Cookies is invalid, remove cookies and try again')
+                return
         else:
-            url = 'https://www.facebook.com/'
+            url = 'https://mbasic.facebook.com/login'
             req = self.session.get(url)
             soup = BeautifulSoup(req.text,'lxml')
-            all_input_data = soup.find('form').findAll('input')
+            all_input_data = soup.find('form').findAll('input', {'type':'hidden'})
             data = {}
             for input_data in all_input_data:
                 data[input_data.get('name')] = input_data.get('value')
@@ -61,7 +66,7 @@ class API:
             data['email'] = email
             data['pass'] = password
             #login
-            login_url = 'https://www.facebook.com/login'
+            login_url = 'https://mbasic.facebook.com/login'
             req = self.session.post(login_url,data=data)
         self.user_id = self.session.cookies.get_dict()['c_user']
         # get hidden input data
