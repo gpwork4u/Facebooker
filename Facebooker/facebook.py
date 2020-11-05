@@ -521,3 +521,20 @@ class API:
             self.send_msg_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
         self.send_msg_data['body'] = content
         self.session.post(url, data=self.send_msg_data)
+
+    def send_image_msg(self, chat_room_id, image, content):
+        url = 'https://upload.facebook.com/_mupload_/mbasic/messages/attachment/photo/'
+        send_data = self.send_msg_data.copy()
+        if len(str(chat_room_id)) > len(self.user_id):
+            send_data['tids'] = 'cid.g.%s'%str(chat_room_id)
+        else:
+            send_data['tids'] = '%s'%str(chat_room_id)
+            send_data['ids[%s]'%str(chat_room_id)] = str(chat_room_id)
+        send_data['tids'] = 'cid.g.%s'%str(chat_room_id)
+        send_data['file1'] = ('image',image,'image')
+        send_data['body'] = content
+
+        m_data = MultipartEncoder(
+                        fields = send_data
+                 )
+        self.session.post(url, data=m_data, headers={'Content-Type': m_data.content_type})
