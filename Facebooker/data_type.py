@@ -3,12 +3,16 @@ class PostInfo:
                  post_id:str,
                  author:str,
                  content:str,
-                 time:str
+                 time:str,
+                 images:list = [],
+                 link:str = None
                  ):
         self.id = post_id
         self.author = author
         self.content = content
         self.time = time
+        self.images = images
+        self.link = link
 
 class CommentInfo:
     def __init__(self,

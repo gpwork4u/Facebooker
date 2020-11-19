@@ -5,6 +5,9 @@ import logging
 import time
 import json
 import re
+import cv2
+import numpy as np
+import urllib
 from requests_toolbelt import MultipartEncoder
 from bs4 import BeautifulSoup
 try:
@@ -127,10 +130,23 @@ class API:
         content = re.sub('<[^>]+> ', '', content)
         content = re.sub('<[^>]+>', '', content)
         time = post_content.find('footer').find('abbr').text
+        post_image = post_content.find('div', {'data-ft':'{"tn":"H"}'})
+        images = []
+        for img_src in post_image.find_all('img', class_='s'):
+            src = img_src.get('src')
+            response = urllib.request.urlopen(src)
+            img = np.asarray(bytearray(response.read()), dtype="uint8")
+            img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+            images.append(img)
+        link = post_image.find('a', id='u_0_2')
+        if link:
+            link = link.get('href')
         post_info = data_type.PostInfo(post_id,
                                        author,
                                        content,
-                                       time)
+                                       time,
+                                       images,
+                                       link)
         if not post_content:
             logging.error('This post is not supported or you don\'t have acess authority')
         return post_info

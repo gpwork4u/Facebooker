@@ -12,7 +12,8 @@ fb = facebook.API.login(email, password)
 - PostInfo.author : the post send from
 - PostInfo.content : post of the comment
 - PostInfo.time : the post send time
-
+- PostInfo.images : images in the post, stored in a numpy array with BGR color channel
+- PostInfo.link : link in the post, if there are no link it will be None
 ### CommentInfo
 - CommentInfo.id : the comment's id
 - CommentInfo.author : the comment send from
@@ -193,6 +194,17 @@ facebook.API.send_msg(chat_room_id, content)
 
 - input
   - chat_room_id : target user id or group id
+  - content : message content
+
+### send_image_msg
+```python
+facebook.API.send_image_msg(chat_room_id, image, content)
+```
+> send a message to a user or a group
+
+- input
+  - chat_room_id : target user id or group id
+  - image : the post image which type is _io.BufferedReader
   - content : message content
 
 ### get_msg
