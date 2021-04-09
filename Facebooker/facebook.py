@@ -20,7 +20,7 @@ except ModuleNotFoundError:
     from . import privacy_level
     from . import like_action
 
-def letter_adder(string, num):
+def letter_adder(string:str, num:int):
     if ord(string[1]) + num%26 >= ord('z'):
         string = chr(ord(string[0])+1) + chr(ord(string[1])+ num - 26)
     else:
@@ -37,17 +37,21 @@ class API:
             --reply
     '''
     def __init__(self):
-        headers={
-            'scheme': 'https',
-            'accept': '*/*',
-            'accept-language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,ja;q=0.5',
-            'user-agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) ' + \
-                         'Gecko/20100101 Firefox/76.0',
+        headers = {
+            'Host': 'mbasic.facebook.com',
+            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': 'https://mbasic.facebook.com',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
         }
         self.session = requests.session()
         self.session.headers.update(headers)
         self.login_check = False
-    def login(self, email, password):
+    def login(self, email:str, password:str):
         # get input field
         self.session.cookies.clear()
         if os.path.isfile(email+'.cookie'):
@@ -102,16 +106,16 @@ class API:
                                     'rst_icv': None,
                                     'view_post': 'view_post',
                                   }
-    def _save_cookies(self, filename):
+    def _save_cookies(self, filename:str):
         with open(filename, 'wb') as f:
             pickle.dump(self.session.cookies, f)
 
-    def _load_cookies(self, filename):
+    def _load_cookies(self, filename:str):
         with open(filename,'rb') as f:
             self.session.cookies.update(pickle.load(f))
     
     # post methods
-    def get_post(self, post_id, group_id=None):
+    def get_post(self, post_id:str, group_id=None):
         if not self.login_check:
             logging.error('You should login first')
             return
