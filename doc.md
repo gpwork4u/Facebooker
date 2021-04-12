@@ -3,7 +3,8 @@
 ## How to use
 ```python
 from Facebooker import facebook
-fb = facebook.API.login(email, password)
+fb = facebook.API
+fb.login(email, password)
 ```
 ## Data Type
 
