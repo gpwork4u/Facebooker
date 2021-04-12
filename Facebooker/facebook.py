@@ -5,8 +5,6 @@ import logging
 import time
 import json
 import re
-import numpy as np
-import urllib
 from requests_toolbelt import MultipartEncoder
 from bs4 import BeautifulSoup
 try:
