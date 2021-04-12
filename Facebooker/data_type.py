@@ -1,6 +1,7 @@
 class PostInfo:
     def __init__(self,
                  post_id: str,
+                 post_url: str,
                  author: str,
                  content: str,
                  time: str,
@@ -8,6 +9,7 @@ class PostInfo:
                  link: str = None
                  ):
         self.id = post_id
+        self.url = post_url
         self.author = author
         self.content = content
         self.time = time

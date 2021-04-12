@@ -145,10 +145,11 @@ class API:
             for img_src in post_image.find_all('img', class_='s'):
                 src = img_src.get('src')
                 images.append(src)
-            link = post_image.find('a', id='u_0_2')
+            link = post_image.find('a')
             if link:
                 link = link.get('href')
         post_info = data_type.PostInfo(post_id,
+                                       url,
                                        author,
                                        content,
                                        time,
@@ -188,7 +189,7 @@ class API:
               'end_time=%s&' % str(time.time()) + \
               'profile_id=%s' % str(user_id)
         posts_id = []
-        while len(posts_id) < num:
+        while len(posts_id) < num or num <= 0:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             posts = soup.find('section').findAll('article', recursive=False)
@@ -200,7 +201,7 @@ class API:
                 posts_id.append(post_id)
                 if len(posts_id) >= num:
                     break
-            if len(posts_id) >= num:
+            if len(posts_id) >= num and num > 0:
                 break
             next_page_div = soup.find('section').next_sibling
             if next_page_div.get('id'):
