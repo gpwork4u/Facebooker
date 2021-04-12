@@ -194,6 +194,8 @@ class API:
             posts = soup.find('section').findAll('article', recursive=False)
             for post in posts:
                 data = json.loads(post.get('data-ft'))
+                if 'mf_story_key' not in post_id:
+                    continue
                 post_id = data['mf_story_key']
                 posts_id.append(post_id)
                 if len(posts_id) >= num:
