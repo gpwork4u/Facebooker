@@ -205,7 +205,9 @@ class API:
             next_page_div = soup.find('section').next_sibling
             if next_page_div.get('id'):
                 next_href = next_page_div.find('a').get('href')
-            url = 'https://mbasic.facebook.com' + next_href
+                url = 'https://mbasic.facebook.com' + next_href
+            else:
+                break
         return posts_id
 
     def get_group_post_list(self, group_id, num=10):
@@ -227,8 +229,12 @@ class API:
                     break
             if len(posts_id) >= num:
                 break
-            next_href = soup.find('section').next_sibling.find('a').get('href')
-            url = 'https://mbasic.facebook.com' + next_href
+            next_page_div = soup.find('section').next_sibling
+            if next_page_div.get('id'):
+                next_href = next_page_div.find('a').get('href')
+                url = 'https://mbasic.facebook.com' + next_href
+            else:
+                break
         return posts_id
 
     def get_fanpage_post_list(self, fanpage_id, num=10):
