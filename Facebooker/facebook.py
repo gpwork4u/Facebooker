@@ -5,7 +5,6 @@ import logging
 import time
 import json
 import re
-import cv2
 import numpy as np
 import urllib
 from requests_toolbelt import MultipartEncoder
@@ -147,10 +146,7 @@ class API:
         if post_image:
             for img_src in post_image.find_all('img', class_='s'):
                 src = img_src.get('src')
-                response = urllib.request.urlopen(src)
-                img = np.asarray(bytearray(response.read()), dtype="uint8")
-                img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-                images.append(img)
+                images.append(src)
             link = post_image.find('a', id='u_0_2')
             if link:
                 link = link.get('href')
