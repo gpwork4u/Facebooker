@@ -202,7 +202,9 @@ class API:
                     break
             if len(posts_id) >= num:
                 break
-            next_href = soup.find('div', id='u_0_0').find('a').get('href')
+            next_page_div = soup.find('section').next_sibling
+            if next_page_div.get('id'):
+                next_href = next_page_div.find('a').get('href')
             url = 'https://mbasic.facebook.com' + next_href
         return posts_id
 
