@@ -38,12 +38,12 @@ class API:
 
     def __init__(self):
         headers = {
-            'Host': 'mbasic.facebook.com',
+            'Host': 'm.facebook.com',
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3',
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Origin': 'https://mbasic.facebook.com',
+            'Origin': 'https://m.facebook.com',
             'DNT': '1',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
@@ -64,7 +64,7 @@ class API:
                     'Cookies is invalid, remove cookies and try again')
                 return
         else:
-            url = 'https://mbasic.facebook.com/login'
+            url = 'https://m.facebook.com/login'
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             all_input_data = soup.find('form').findAll(
@@ -76,11 +76,11 @@ class API:
             data['email'] = email
             data['pass'] = password
             # login
-            login_url = 'https://mbasic.facebook.com/login'
+            login_url = 'https://m.facebook.com/login'
             req = self.session.post(login_url, data=data)
         self.user_id = self.session.cookies.get_dict()['c_user']
         # get hidden input data
-        url = 'https://mbasic.facebook.com/'
+        url = 'https://m.facebook.com/'
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
         try:
@@ -181,15 +181,12 @@ class API:
         except Exception:
             logging.error('You don\'t have access authority')
 
-    def get_user_post_list(self, user_id, num=10):
+    def get_user_post_list(self, user_id):
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/profile/timeline/stream/?' + \
-              'end_time=%s&' % str(time.time()) + \
-              'profile_id=%s' % str(user_id)
-        posts_id = []
-        while len(posts_id) < num or num <= 0:
+        url = 'https://m.facebook.com/%s?tsid=1' % str(user_id)
+        while True:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             posts = soup.find('section').findAll('article', recursive=False)
@@ -198,68 +195,63 @@ class API:
                 if 'mf_story_key' not in data:
                     continue
                 post_id = data['mf_story_key']
-                posts_id.append(post_id)
-                if len(posts_id) >= num:
-                    break
-            if len(posts_id) >= num and num > 0:
-                break
+            yield post_id
             next_page_div = soup.find('section').next_sibling
             if next_page_div.get('id'):
                 next_href = next_page_div.find('a').get('href')
-                url = 'https://mbasic.facebook.com' + next_href
+                url = 'https://m.facebook.com' + next_href
             else:
                 break
-        return posts_id
 
-    def get_group_post_list(self, group_id, num=10):
+    def get_group_post_list(self, group_id):
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/%s' % str(group_id)
-        posts_id = []
-        while len(posts_id) < num:
+        url = 'https://m.facebook.com/groups/%s' % str(group_id)
+        while True:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             soup = soup.find('div', id='m_group_stories_container')
             posts = soup.find('section').findAll('article', recursive=False)
             for post in posts:
                 data = json.loads(post.get('data-ft'))
+                if 'mf_story_key' not in data:
+                    continue
                 post_id = data['mf_story_key']
-                posts_id.append(post_id)
-                if len(posts_id) >= num:
-                    break
-            if len(posts_id) >= num:
-                break
-            next_page_div = soup.find('section').next_sibling
-            if next_page_div.get('id'):
-                next_href = next_page_div.find('a').get('href')
+                yield post_id
+            next_page_link = soup.find('section').next_sibling.find('a')
+            if next_page_link:
+                next_href = next_page_link.get('href')
                 url = 'https://mbasic.facebook.com' + next_href
             else:
                 break
-        return posts_id
 
-    def get_fanpage_post_list(self, fanpage_id, num=10):
+    def get_fanpage_post_list(self, fanpage_id):
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/%s' % str(fanpage_id)
-        posts_id = []
-        while len(posts_id) < num:
-            req = self.session.get(url)
-            soup = BeautifulSoup(req.text, 'lxml')
-            posts = soup.find('section').findAll('article', recursive=False)
-            for post in posts:
-                data = json.loads(post.get('data-ft'))
-                post_id = data['mf_story_key']
-                posts_id.append(post_id)
-                if len(posts_id) >= num:
-                    break
-            if len(posts_id) >= num:
+        url = 'https://m.facebook.com/page_content_list_view/more/?' + \
+              'page_id=46251501064&start_cursor=%7B%22timeline_cursor%22%3Anull%2C%22timeline_section_cursor%22%3Anull%2C%22' + \
+              'has_next_page%22%3Atrue%7D&num_to_fetch=4&surface_type=timeline'
+
+        while True:
+            req = self.session.post(url, data={'fb_dtsg': self.fb_dtsg})
+            text = req.text
+            text = req.text.encode().decode("unicode-escape")
+            text = text.encode('utf-16', 'surrogatepass').decode('utf-16')
+            text = text.replace('\/', '/')
+            soup = BeautifulSoup(text, 'lxml')
+            articles = soup.findAll('article')
+            for article in articles:
+                if article.get('data-ft'):
+                    data = json.loads(article.get('data-ft'))
+                    post_id = data['mf_story_key']
+                    yield post_id
+            next_page_div = soup.find('div', id='see_more_cards_id')
+            if not next_page_div:
                 break
-            next_href = soup.find(
-                'div', id='recent').next_sibling.find('a').get('href')
-            url = 'https://mbasic.facebook.com' + next_href
-        return posts_id
+            next_href = next_page_div.find('a').get('href')
+            url = 'https://m.facebook.com' + next_href
 
     def post(self,
              content,
