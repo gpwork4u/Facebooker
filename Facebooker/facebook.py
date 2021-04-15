@@ -435,6 +435,7 @@ class API:
 
     def get_replies(self, post_id, comment_id, group_id=None, num=10):
         comments = self.get_comments(post_id, group_id)
+        comment_id = str(comment_id)
         for comment in comments:
             if comment.id == comment_id:
                 break
