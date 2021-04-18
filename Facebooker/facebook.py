@@ -1,3 +1,4 @@
+from Facebooker.parsers import post_parser
 import requests
 import pickle
 import os
@@ -11,19 +12,16 @@ try:
     import data_type
     import privacy_level
     import like_action
-
+    import urls
+    import parsers
+    from constants import HEADERS, SEND_MSG_FORM_DATA, POST_FORM_DATA
 except ModuleNotFoundError:
     from . import data_type
     from . import privacy_level
     from . import like_action
-
-
-def letter_adder(string: str, num: int):
-    if ord(string[1]) + num % 26 >= ord('z'):
-        string = chr(ord(string[0])+1) + chr(ord(string[1]) + num - 26)
-    else:
-        string = string[0] + chr(ord(string[1]) + num)
-    return string
+    from . import urls
+    from . import parsers
+    from .constants import HEADERS, SEND_MSG_FORM_DATA, POST_FORM_DATA
 
 
 class API:
@@ -35,80 +33,42 @@ class API:
             |
             --reply
     '''
+    post_form_data = POST_FORM_DATA
+    send_msg_form_data = SEND_MSG_FORM_DATA
+    login_check = False
 
     def __init__(self):
-        headers = {
-            'Host': 'm.facebook.com',
-            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Origin': 'https://m.facebook.com',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        }
         self.session = requests.session()
-        self.session.headers.update(headers)
-        self.login_check = False
+        self.session.headers.update(HEADERS)
 
     def login(self, email: str, password: str):
         # get input field
         self.session.cookies.clear()
         if os.path.isfile(email+'.cookie'):
             self._load_cookies(email+'.cookie')
-            try:
-                self.user_id = self.session.cookies.get_dict()['c_user']
-            except:
-                logging.error(
-                    'Cookies is invalid, remove cookies and try again')
-                return
-        else:
-            url = 'https://m.facebook.com/login'
-            req = self.session.get(url)
-            soup = BeautifulSoup(req.text, 'lxml')
-            all_input_data = soup.find('form').findAll(
-                'input', {'type': 'hidden'})
-            data = {}
-            for input_data in all_input_data:
-                data[input_data.get('name')] = input_data.get('value')
+        req = self.session.get(urls.M_FACEBOOK)
+        self.fb_dtsg = parsers.get_fb_dtsg(req.text)
+        if not self.fb_dtsg:
+            login_url = urls.join(urls.M_FACEBOOK, 'login')
+            req = self.session.get(login_url)
+            data = parsers.get_login_data(req.text)
             # input email and password
             data['email'] = email
             data['pass'] = password
             # login
-            login_url = 'https://m.facebook.com/login'
             req = self.session.post(login_url, data=data)
-        self.user_id = self.session.cookies.get_dict()['c_user']
-        # get hidden input data
-        url = 'https://m.facebook.com/'
-        req = self.session.get(url)
-        soup = BeautifulSoup(req.text, 'lxml')
-        try:
-            self.fb_dtsg = soup.find('input', {'name': 'fb_dtsg'}).get('value')
-        except Exception as e:
-            logging.debug(e)
-            logging.error('username or password is invalid')
+        cookies = self.session.cookies.get_dict()
+        if 'c_user' not in cookies:
             return False
-
+        self.user_id = cookies['c_user']
+        req = self.session.get(urls.M_FACEBOOK)
+        self.fb_dtsg = parsers.get_fb_dtsg(req.text)
         self.login_check = True
         self._save_cookies(email+'.cookie')
-        self.send_msg_data = {
-            'fb_dtsg': self.fb_dtsg,
-            'body': '',
-            'send': '傳送',
-            'wwwupp': 'C3'
-        }
-        self.post_data_template = {
-            'fb_dtsg': self.fb_dtsg,
-            'target': self.user_id,
-            'c_src': 'feed',
-            'cwevent': 'composer_entry',
-            'referrer': 'feed',
-            'ctype': 'inline',
-            'cver': 'amber',
-            'rst_icv': None,
-            'view_post': 'view_post',
-        }
+        self.send_msg_form_data['fb_dtsg'] = self.fb_dtsg,
+        self.post_form_data['fb_dtsg'] = self.fb_dtsg
+        self.post_form_data['target'] = self.user_id
+        return True
 
     def _save_cookies(self, filename: str):
         with open(filename, 'wb') as f:
@@ -123,60 +83,33 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/story.php?' + \
-              'story_fbid=%s&id=1' % str(post_id)
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        'story.php?story_fbid=%s&id=1' % str(post_id))
         if group_id:
-            url = 'https://mbasic.facebook.com/groups/%s?' % str(group_id) + \
-                  'view=permalink&id=%s' % str(post_id)
+            url = urls.join(urls.MBASIC_FACEBOOK,
+                            'groups/%s?' % str(group_id),
+                            'view=permalink&id=%s' % str(post_id))
         req = self.session.get(url)
-        soup = BeautifulSoup(req.text, 'lxml')
-        post_content = soup.find('div', id='m_story_permalink_view')
-        author = post_content.find('h3', recursive=True).text
-        content = str(post_content.find('div', {'data-ft': '{"tn":"*s"}'}))
-        content = content.replace('<br/> ', '\n')
-        content = content.replace('<br/>', '\n')
-        content = re.sub('<[^>]+> ', '', content)
-        content = re.sub('<[^>]+>', '', content)
-        time = post_content.find('footer').find('abbr').text
-        post_image = post_content.find('div', {'data-ft': '{"tn":"H"}'})
-        images = []
-        link = None
-        if post_image:
-            for img_src in post_image.find_all('img', class_='s'):
-                src = img_src.get('src')
-                images.append(src)
-            link = post_image.find('a')
-            if link:
-                link = link.get('href')
-        post_info = data_type.PostInfo(post_id,
-                                       url,
-                                       author,
-                                       content,
-                                       time,
-                                       images,
-                                       link)
-        if not post_content:
+        post_info = post_parser(req.text, post_id, url)
+
+        if not post_info:
             logging.error(
                 'This post is not supported or you don\'t have acess authority')
         return post_info
 
     def like_post(self, post_id, action=like_action.LIKE):
-
         if not self.login_check:
             logging.error('You should login first')
             return
         if action > 6 or action < 0:
             logging.error('This action is not supported')
             return
-        url = 'https://mbasic.facebook.com/reactions/picker/?ft_id=' + \
-            str(post_id)
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/reactions/picker/?ft_id='+str(post_id))
         req = self.session.get(url)
         try:
-            soup = BeautifulSoup(req.text, 'lxml')
-            root = soup.find('div', id='root').find(
-                'table', role='presentation')
-            action_href = [a.get('href') for a in root.findAll('a')][:-1]
-            like_url = 'https://mbasic.facebook.com' + action_href[action]
+            action_href = parsers.get_like_action_href(req.text)
+            like_url = urls.MBASIC_FACEBOOK + action_href[action]
             self.session.get(like_url)
         except Exception:
             logging.error('You don\'t have access authority')
@@ -185,21 +118,17 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://m.facebook.com/%s?tsid=1' % str(user_id)
+        url = urls.join(urls.M_FACEBOOK, '%s?tsid=1' % str(user_id))
         while True:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
-            posts = soup.find('section').findAll('article', recursive=False)
-            for post in posts:
-                data = json.loads(post.get('data-ft'))
-                if 'mf_story_key' not in data:
-                    continue
-                post_id = data['mf_story_key']
-            yield post_id
+            post_ids = parsers.post_list_parser(soup)
+            for post_id in post_ids:
+                yield post_id
             next_page_div = soup.find('section').next_sibling
             if next_page_div.get('id'):
                 next_href = next_page_div.find('a').get('href')
-                url = 'https://m.facebook.com' + next_href
+                url = urls.M_FACEBOOK + next_href
             else:
                 break
 
@@ -207,22 +136,18 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://m.facebook.com/groups/%s' % str(group_id)
+        url = urls.join(urls.M_FACEBOOK, '/groups/%s' % str(group_id))
         while True:
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             soup = soup.find('div', id='m_group_stories_container')
-            posts = soup.find('section').findAll('article', recursive=False)
-            for post in posts:
-                data = json.loads(post.get('data-ft'))
-                if 'mf_story_key' not in data:
-                    continue
-                post_id = data['mf_story_key']
+            post_ids = parsers.post_list_parser(soup)
+            for post_id in post_ids:
                 yield post_id
             next_page_link = soup.find('section').next_sibling.find('a')
             if next_page_link:
                 next_href = next_page_link.get('href')
-                url = 'https://mbasic.facebook.com' + next_href
+                url = urls.join(urls.MBASIC_FACEBOOK, next_href)
             else:
                 break
 
@@ -230,9 +155,10 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://m.facebook.com/page_content_list_view/more/?' + \
-              'page_id=46251501064&start_cursor=%7B%22timeline_cursor%22%3Anull%2C%22timeline_section_cursor%22%3Anull%2C%22' + \
-              'has_next_page%22%3Atrue%7D&num_to_fetch=4&surface_type=timeline'
+        url = urls.join(urls.M_FACEBOOK,
+                        f'page_content_list_view/more/?' +
+                        f'page_id={fanpage_id}&start_cursor=%7B%22timeline_cursor%22%3Anull%2C%22timeline_section_cursor%22%3Anull%2C%22' +
+                        f'has_next_page%22%3Atrue%7D&num_to_fetch=4&surface_type=timeline')
 
         while True:
             req = self.session.post(url, data={'fb_dtsg': self.fb_dtsg})
@@ -251,7 +177,7 @@ class API:
             if not next_page_div:
                 break
             next_href = next_page_div.find('a').get('href')
-            url = 'https://m.facebook.com' + next_href
+            url = urls.M_FACEBOOK + next_href
 
     def post(self,
              content,
@@ -259,8 +185,8 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        post_data = self.post_data_template
-        url = 'https://mbasic.facebook.com/composer/mbasic/'
+        post_data = self.post_form_data
+        url = urls.join(urls.MBASIC_FACEBOOK, 'composer/mbasic/')
         post_data['xc_message'] = content
         post_data['privacyx'] = privacy_level
         self.session.post(url, data=post_data)
@@ -276,8 +202,8 @@ class API:
             return
         referrer = ['timeline', 'group', 'pages_feed']
         c_src = ['timeline_other', 'group', 'page_self']
-        post_data = self.post_data_template
-        url = 'https://mbasic.facebook.com/composer/mbasic/'
+        post_data = self.post_form_data
+        url = urls.join(urls.MBASIC_FACEBOOK, '/composer/mbasic/')
         post_data['xc_message'] = content
         post_data['referrer'] = referrer[target_type]
         post_data['c_src'] = c_src[target_type]
@@ -289,9 +215,10 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        post_data = self.post_data_template
-        url = 'https://mbasic.facebook.com/composer/mbasic/?av=%s' % str(
-            fanpage_id)
+        post_data = self.post_form_data
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/composer/mbasic/?av=%s' % str(),
+                        fanpage_id)
         post_data['xc_message'] = content
         post_data['referrer'] = 'pages_feed'
         post_data['c_src'] = 'page_self'
@@ -299,10 +226,11 @@ class API:
         self.session.post(url, data=post_data)
 
     def fanpage_post_photo(self, text_content, image, fanpage_id):
-        url = 'https://mbasic.facebook.com/composer/mbasic/' + \
-            '?c_src=page_self&referrer=pages_feed&' + \
-            'target=%s&' % fanpage_id + \
-            'icv=lgc_view_photo&av=%s' % fanpage_id
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/composer/mbasic/',
+                        '?c_src=page_self&referrer=pages_feed&',
+                        'target=%s&' % fanpage_id,
+                        'icv=lgc_view_photo&av=%s' % fanpage_id)
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
         form = soup.find('form')
@@ -311,7 +239,8 @@ class API:
         for input_data in all_input_data:
             data[input_data.get('name')] = input_data.get('value')
 
-        url = 'https://upload.facebook.com/_mupload_/composer/?av=%s' % fanpage_id
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '_mupload_/composer/?av=%s' % fanpage_id)
         data['file1'] = ('image', image, 'image')
         data['xc_message'] = text_content
         m_data = MultipartEncoder(
@@ -327,7 +256,7 @@ class API:
                         content='',
                         images=[],
                         currency='TWD'):
-        url = 'https://mbasic.facebook.com/groups/sell/_edit/post/'
+        url = urls.join(urls.MBASIC_FACEBOOK, '/groups/sell/_edit/post/')
         data = {}
         data['fb_dtsg'] = self.fb_dtsg
         data['composer_attachment_sell_title'] = title
@@ -352,11 +281,11 @@ class API:
 
         comment_info_list = []
         while num > 0:
-            url = 'https://mbasic.facebook.com/story.php?' + \
-                'story_fbid=%s&id=1&p=%s' % (str(post_id), start)
+            url = urls.join(urls.MBASIC_FACEBOOK,
+                            '/story.php?story_fbid=%s&id=1&p=%s' % (str(post_id), start))
             if group_id:
-                url = 'https://mbasic.facebook.com/groups/%s?view=permalink&id=%s' % (
-                    group_id, post_id)
+                url = urls.join(urls.MBASIC_FACEBOOK,
+                                '/groups/%s?view=permalink&id=%s' % (group_id, post_id))
             req = self.session.get(url)
             soup = BeautifulSoup(req.text, 'lxml')
             try:
@@ -378,9 +307,9 @@ class API:
                     comment_id = comment.get('id')
                     comment_content = comment.find('h3').next_sibling.text
                     comment_time = comment.find('abbr').text
-                    comment_url = 'https://mbasic.facebook.com' + \
-                                  comment.find('span', id='like_%s_%s' % (post_id, comment_id)).\
-                                  next_sibling.next_sibling.get('href')
+                    comment_href = comment.find('span', id='like_%s_%s' % (
+                        post_id, comment_id)).next_sibling.next_sibling.get('href')
+                    comment_url = urls.join(urls.MBASIC_FACEBOOK, comment_href)
                     comment_info = data_type.CommentInfo(comment_id,
                                                          comment_author,
                                                          comment_content,
@@ -408,17 +337,15 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/ufi/delete/?' + \
-              'delete_comment_id=%s' % str(comment_id) + \
-              '&delete_comment_fbid=%s' % str(comment_id) + \
-              '&ft_ent_identifier=%s' % str(post_id)
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/ufi/delete/',
+                        '?delete_comment_id=%s' % str(comment_id), '&delete_comment_fbid=%s' % str(comment_id), '&ft_ent_identifier=%s' % str(post_id))
         data = {'fb_dtsg': self.fb_dtsg}
         return self.session.post(url, data=data)
 
     def comment(self, post_id, content):
-        url = 'https://mbasic.facebook.com/a/comment.php?' + \
-              'fs=8&actionsource=2&comment_logging' + \
-              '&ft_ent_identifier=%s' % str(post_id)
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/a/comment.php?fs=8&actionsource=2&comment_logging&ft_ent_identifier=%s' % str(post_id))
         comment = {'comment_text': content, 'fb_dtsg': self.fb_dtsg}
         return self.session.post(url, data=comment)
 
@@ -427,9 +354,8 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/a/comment.php?' + \
-              'parent_comment_id=%s' % str(comment_id) + \
-              '&ft_ent_identifier=%s' % str(post_id)
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/a/comment.php?parent_comment_id=%s&ft_ent_identifier=%s' % (str(comment_id), str(post_id)))
         data = {'fb_dtsg': self.fb_dtsg, 'comment_text': content}
         self.session.post(url, data=data)
 
@@ -437,6 +363,7 @@ class API:
         comments = self.get_comments(post_id, group_id)
         comment_id = str(comment_id)
         for comment in comments:
+            print(comment.id)
             if comment.id == comment_id:
                 break
         url = comment.url
@@ -474,7 +401,7 @@ class API:
 
             if pre_page_div:
                 pre_href = pre_page_div.find('a').get('href')
-                url = 'https://mbasic.facebook.com' + pre_href
+                url = urls.join(urls.MBASIC_FACEBOOK, pre_href)
             else:
                 break
         return reply_info_list
@@ -485,8 +412,8 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/messages/read/?tid=%s' % str(
-            chat_room_id)
+        url = urls.join(urls.MBASIC_FACEBOOK,
+                        '/messages/read/?tid=%s' % str(chat_room_id))
         send_from = []
         content = []
         time = []
@@ -504,7 +431,7 @@ class API:
             if msgs:
                 msgs.reverse()
             for msg in msgs:
-                content_class = letter_adder(msg.get('class')[-1], 1)
+                content_class = parsers.letter_adder(msg.get('class')[-1], 1)
                 try:
                     msg_contents = msg.find('div', class_=content_class). \
                         find('div').findAll('span')
@@ -524,7 +451,7 @@ class API:
             if not pre_page:
                 break
             href = pre_page.find('a').get('href')
-            url = 'https://mbasic.facebook.com' + href
+            url = urls.join(urls.MBASIC_FACEBOOK, href)
 
         return list(zip(send_from, content, time))
 
@@ -532,7 +459,7 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/messages/?folder=unread'
+        url = urls.join(urls.MBASIC_FACEBOOK, '/messages/?folder=unread')
         req = self.session.get(url)
         soup = BeautifulSoup(req.text, 'lxml')
         unread_chats = soup.find('div', id='root').find(
@@ -554,19 +481,19 @@ class API:
         if not self.login_check:
             logging.error('You should login first')
             return
-        url = 'https://mbasic.facebook.com/messages/send/'
+        url = urls.join(urls.MBASIC_FACEBOOK, '/messages/send/')
         if len(str(chat_room_id)) > len(self.user_id):
-            self.send_msg_data['tids'] = 'cid.g.%s' % str(chat_room_id)
+            self.send_msg_form_data['tids'] = 'cid.g.%s' % str(chat_room_id)
         else:
-            self.send_msg_data['tids'] = '%s' % str(chat_room_id)
-            self.send_msg_data['ids[%s]' %
-                               str(chat_room_id)] = str(chat_room_id)
-        self.send_msg_data['body'] = content
-        self.session.post(url, data=self.send_msg_data)
+            self.send_msg_form_data['tids'] = '%s' % str(chat_room_id)
+            self.send_msg_form_data['ids[%s]' %
+                                    str(chat_room_id)] = str(chat_room_id)
+        self.send_msg_form_data['body'] = content
+        self.session.post(url, data=self.send_msg_form_data)
 
     def send_image_msg(self, chat_room_id, image, content):
         url = 'https://upload.facebook.com/_mupload_/mbasic/messages/attachment/photo/'
-        send_data = self.send_msg_data.copy()
+        send_data = self.send_msg_form_data.copy()
         if len(str(chat_room_id)) > len(self.user_id):
             send_data['tids'] = 'cid.g.%s' % str(chat_room_id)
         else:
