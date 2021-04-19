@@ -9,4 +9,6 @@ Facebooker.egg-info/
 *.html
 dist/
 install.sh
+install.bat
 .env
+test_constant.py
