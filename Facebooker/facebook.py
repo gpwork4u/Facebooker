@@ -363,7 +363,6 @@ class API:
         comments = self.get_comments(post_id, group_id)
         comment_id = str(comment_id)
         for comment in comments:
-            print(comment.id)
             if comment.id == comment_id:
                 break
         url = comment.url
